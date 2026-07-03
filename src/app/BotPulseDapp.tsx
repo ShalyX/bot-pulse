@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BrowserProvider,
   Contract,
@@ -144,6 +144,75 @@ export default function BotPulseDapp() {
   const deviceId = useMemo(() => keccak256(toUtf8Bytes(deviceLabel.trim() || initialDeviceId)), [deviceLabel]);
   const onCorrectChain = chainId === BOT_CHAIN_TESTNET.chainId;
 
+  useEffect(() => {
+    if (!window.ethereum) return;
+
+    let cancelled = false;
+
+    async function detectConnectedWallet() {
+      try {
+        const accounts = (await window.ethereum?.request({ method: "eth_accounts" })) as string[] | undefined;
+        const currentChainId = (await window.ethereum?.request({ method: "eth_chainId" })) as string | undefined;
+
+        if (cancelled) return;
+        if (accounts?.[0]) {
+          setAccount(accounts[0]);
+          setStatus("Wallet already connected. Refreshing BOT Chain state...");
+        }
+        if (currentChainId) {
+          setChainId(BigInt(currentChainId));
+        }
+      } catch {
+        // Passive detection should never block the UI.
+      }
+    }
+
+    function handleAccountsChanged(accounts: unknown) {
+      const nextAccount = Array.isArray(accounts) && typeof accounts[0] === "string" ? accounts[0] : "";
+      setAccount(nextAccount);
+      setStatus(nextAccount ? "Wallet account detected. Ready for BOT Chain actions." : "Wallet disconnected.");
+    }
+
+    function handleChainChanged(nextChainId: unknown) {
+      if (typeof nextChainId === "string") {
+        setChainId(BigInt(nextChainId));
+      }
+    }
+
+    const walletProvider = window.ethereum as Eip1193Provider & {
+      on?: (event: string, listener: (...args: unknown[]) => void) => void;
+      removeListener?: (event: string, listener: (...args: unknown[]) => void) => void;
+    };
+
+    void detectConnectedWallet();
+    walletProvider.on?.("accountsChanged", handleAccountsChanged);
+    walletProvider.on?.("chainChanged", handleChainChanged);
+
+    return () => {
+      cancelled = true;
+      walletProvider.removeListener?.("accountsChanged", handleAccountsChanged);
+      walletProvider.removeListener?.("chainChanged", handleChainChanged);
+    };
+  }, []);
+
+  async function syncBotChainAfterConnect() {
+    setBusy(true);
+    try {
+      await ensureBotChain();
+      const currentChainId = (await window.ethereum?.request({ method: "eth_chainId" })) as string | undefined;
+      if (currentChainId) {
+        setChainId(BigInt(currentChainId));
+      }
+      setStatus("Wallet connected. Loading deployed BOT Pulse state...");
+      await refreshDevice();
+    } catch (error) {
+      const maybeError = error as { code?: number; message?: string };
+      setStatus(maybeError.message ?? "Wallet connected, but BOT Chain switch/state refresh failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function getContract(withSigner = false) {
     if (!withSigner) {
       const provider = new JsonRpcProvider(BOT_CHAIN_TESTNET.rpcUrl);
@@ -162,19 +231,20 @@ export default function BotPulseDapp() {
         throw new Error("No EVM wallet found. Open this page inside MetaMask/Rabby browser or install a wallet extension.");
       }
 
-      await window.ethereum.request({ method: "eth_requestAccounts" });
-      await ensureBotChain();
+      const accounts = (await window.ethereum.request({ method: "eth_requestAccounts" })) as string[];
+      const connectedAccount = accounts?.[0];
+      if (!connectedAccount) {
+        throw new Error("Wallet did not return an account. Unlock the wallet and try again.");
+      }
 
-      const provider = await getBrowserProvider();
-      await provider.send("eth_requestAccounts", []);
-      const signer = await provider.getSigner();
-      const network = await provider.getNetwork();
-      const address = await signer.getAddress();
+      setAccount(connectedAccount);
+      setStatus("Wallet connected. Checking BOT Chain network...");
+      setBusy(false);
 
-      setAccount(address);
-      setChainId(network.chainId);
-      setStatus(network.chainId === BOT_CHAIN_TESTNET.chainId ? "Wallet connected on BOT Chain testnet." : "Wallet connected, but wrong chain.");
-      await refreshDevice();
+      // Do the slower network switch + contract read after the account state has rendered.
+      window.setTimeout(() => {
+        void syncBotChainAfterConnect();
+      }, 0);
     } catch (error) {
       const maybeError = error as { code?: number; message?: string };
       if (maybeError.code === 4001) {
@@ -182,7 +252,6 @@ export default function BotPulseDapp() {
       } else {
         setStatus(maybeError.message ?? "Wallet connection failed.");
       }
-    } finally {
       setBusy(false);
     }
   }
