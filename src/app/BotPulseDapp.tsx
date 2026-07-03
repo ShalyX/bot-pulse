@@ -416,12 +416,18 @@ export default function BotPulseDapp() {
             ))}
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <a href="#interact" className="rounded-full bg-signal px-6 py-3 text-center font-black text-white shadow-xl shadow-orange-900/20 transition hover:bg-signal-strong">
               Send live pulse
             </a>
             <a href={explorerAddress(BOT_PULSE_CONTRACT_ADDRESS)} target="_blank" rel="noreferrer" className="rounded-full border border-black/15 bg-paper px-6 py-3 text-center font-black text-foreground transition hover:border-signal hover:text-signal-strong">
               View contract
+            </a>
+            <a href={BOT_CHAIN_TESTNET.faucetUrl} target="_blank" rel="noreferrer" className="rounded-full border border-black/15 bg-paper px-6 py-3 text-center font-black text-foreground transition hover:border-signal hover:text-signal-strong">
+              Get test BOT
+            </a>
+            <a href={BOT_CHAIN_TESTNET.explorerUrl} target="_blank" rel="noreferrer" className="rounded-full border border-black/15 bg-paper px-6 py-3 text-center font-black text-foreground transition hover:border-signal hover:text-signal-strong">
+              Open explorer
             </a>
           </div>
         </div>
@@ -464,6 +470,14 @@ export default function BotPulseDapp() {
             <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">Live contract controls</p>
             <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Register device, then send pulse.</h2>
             <p className="mt-2 max-h-28 overflow-auto break-words rounded-2xl bg-paper-strong p-3 text-sm leading-6 text-ink-soft">{status}</p>
+            <div className="mt-2 flex flex-wrap gap-2 text-sm font-bold">
+              <a href={BOT_CHAIN_TESTNET.faucetUrl} target="_blank" rel="noreferrer" className="rounded-full bg-signal/15 px-3 py-2 text-signal-strong hover:bg-signal/25">
+                Faucet: get test BOT
+              </a>
+              <a href={BOT_CHAIN_TESTNET.explorerUrl} target="_blank" rel="noreferrer" className="rounded-full bg-moss/15 px-3 py-2 text-moss hover:bg-moss/25">
+                BOT explorer
+              </a>
+            </div>
             {chainId && !onCorrectChain ? (
               <p className="mt-2 rounded-2xl bg-signal/15 p-3 text-sm font-bold text-signal-strong">
                 Wrong chain detected. Switch to BOT Chain testnet chain ID 968.

@@ -4,6 +4,7 @@ export const BOT_CHAIN_TESTNET = {
   chainName: "BOT Chain Testnet",
   rpcUrl: "https://rpc.bohr.life",
   explorerUrl: "https://scan.bohr.life",
+  faucetUrl: "https://faucet.botchain.ai/basic",
   nativeCurrency: {
     name: "BOT",
     symbol: "BOT",
