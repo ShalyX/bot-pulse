@@ -96,6 +96,30 @@ function formatTimestamp(value: bigint) {
   return new Date(Number(value) * 1000).toLocaleString();
 }
 
+function readableWalletError(error: unknown, fallback: string) {
+  const maybeError = error as { code?: number; shortMessage?: string; reason?: string; message?: string };
+  const rawMessage = maybeError.shortMessage ?? maybeError.reason ?? maybeError.message ?? "";
+  const message = rawMessage.toLowerCase();
+
+  if (maybeError.code === 4001 || message.includes("user rejected") || message.includes("user denied")) {
+    return "Wallet request rejected. Try again when ready.";
+  }
+  if (message.includes("device exists")) {
+    return "This device is already registered. You can send a pulse now.";
+  }
+  if (message.includes("unknown device")) {
+    return "Device is not registered yet. Register it first, then send a pulse.";
+  }
+  if (message.includes("insufficient funds")) {
+    return "Wallet needs BOT testnet gas from the faucet before sending this transaction.";
+  }
+  if (message.includes("no evm wallet")) {
+    return "No EVM wallet found. Open this page inside MetaMask/Rabby or install a wallet extension.";
+  }
+
+  return fallback;
+}
+
 async function getBrowserProvider() {
   if (!window.ethereum) {
     throw new Error("No EVM wallet found. Install MetaMask/Rabby and add BOT Chain testnet.");
@@ -279,12 +303,7 @@ export default function BotPulseDapp() {
       setStatus(`Loaded ${deviceLabel} from BOT Chain.`);
     } catch (error) {
       setDevice(null);
-      const message = error instanceof Error && error.message.includes("unknown device")
-        ? "Device is not registered yet. Register it, then send a pulse."
-        : error instanceof Error
-          ? error.message
-          : "Could not load device state.";
-      setStatus(message);
+      setStatus(readableWalletError(error, "Could not load device state from BOT Chain."));
     } finally {
       setBusy(false);
     }
@@ -303,7 +322,11 @@ export default function BotPulseDapp() {
       setStatus("Device registered on BOT Chain.");
       await refreshDevice();
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Device registration failed.");
+      const readable = readableWalletError(error, "Device registration failed. Please try again.");
+      setStatus(readable);
+      if (readable.includes("already registered")) {
+        await refreshDevice();
+      }
     } finally {
       setBusy(false);
     }
@@ -331,7 +354,7 @@ export default function BotPulseDapp() {
       setStatus("Pulse confirmed. Freshness state updated from contract.");
       await refreshDevice();
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Heartbeat submission failed.");
+      setStatus(readableWalletError(error, "Heartbeat submission failed. Please try again."));
     } finally {
       setBusy(false);
     }
@@ -440,7 +463,7 @@ export default function BotPulseDapp() {
           <div className="mb-5">
             <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">Live contract controls</p>
             <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Register device, then send pulse.</h2>
-            <p className="mt-2 rounded-2xl bg-paper-strong p-3 text-sm leading-6 text-ink-soft">{status}</p>
+            <p className="mt-2 max-h-28 overflow-auto break-words rounded-2xl bg-paper-strong p-3 text-sm leading-6 text-ink-soft">{status}</p>
             {chainId && !onCorrectChain ? (
               <p className="mt-2 rounded-2xl bg-signal/15 p-3 text-sm font-bold text-signal-strong">
                 Wrong chain detected. Switch to BOT Chain testnet chain ID 968.
@@ -474,8 +497,8 @@ export default function BotPulseDapp() {
               </label>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
-              <button onClick={registerDevice} disabled={busy || !account} className="rounded-2xl bg-foreground px-5 py-3 font-black text-paper transition hover:bg-moss disabled:cursor-not-allowed disabled:opacity-50">
-                Register Device
+              <button onClick={registerDevice} disabled={busy || !account || Boolean(device?.active)} className="rounded-2xl bg-foreground px-5 py-3 font-black text-paper transition hover:bg-moss disabled:cursor-not-allowed disabled:opacity-50">
+                {device?.active ? "Registered" : "Register Device"}
               </button>
               <button onClick={sendHeartbeat} disabled={busy || !account} className="rounded-2xl bg-signal px-5 py-3 font-black text-white transition hover:bg-signal-strong disabled:cursor-not-allowed disabled:opacity-50">
                 Send Pulse
