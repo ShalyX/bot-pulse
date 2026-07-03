@@ -1,0 +1,36 @@
+{
+  "name": "bot-pulse",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "compile": "hardhat compile",
+    "test:contracts": "hardhat test",
+    "deploy:bot-testnet": "hardhat run scripts/deploy-bot-pulse.ts --network botChainTestnet",
+    "demo:heartbeat": "hardhat run scripts/submit-demo-heartbeat.ts --network botChainTestnet",
+    "check": "npm run lint && npm run compile && npm run test:contracts && npm run build"
+  },
+  "dependencies": {
+    "ethers": "^6.17.0",
+    "next": "16.2.10",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.7",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "hardhat": "^3.9.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "type": "module"
+}
