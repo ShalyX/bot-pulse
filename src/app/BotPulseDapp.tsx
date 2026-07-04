@@ -107,10 +107,16 @@ function readableWalletError(error: unknown, fallback: string) {
   if (message.includes("device exists")) {
     return "This device is already registered. You can send a pulse now.";
   }
+  if (message.includes("not device owner")) {
+    return "This device belongs to another wallet. Use your own device label, register it, then send a pulse.";
+  }
   if (message.includes("unknown device")) {
     return "Device is not registered yet. Register it first, then send a pulse.";
   }
-  if (message.includes("insufficient funds")) {
+  if (message.includes("device inactive")) {
+    return "This device is inactive. Register a new device label before sending a pulse.";
+  }
+  if (message.includes("insufficient funds") || message.includes("insufficient balance")) {
     return "Wallet needs BOT testnet gas from the faucet before sending this transaction.";
   }
   if (message.includes("no evm wallet")) {
@@ -167,6 +173,10 @@ export default function BotPulseDapp() {
 
   const deviceId = useMemo(() => keccak256(toUtf8Bytes(deviceLabel.trim() || initialDeviceId)), [deviceLabel]);
   const onCorrectChain = chainId === BOT_CHAIN_TESTNET.chainId;
+  const connectedAccount = account.toLowerCase();
+  const deviceOwner = device?.owner.toLowerCase() ?? "";
+  const isDeviceOwner = Boolean(connectedAccount && deviceOwner && connectedAccount === deviceOwner);
+  const deviceBelongsToAnotherWallet = Boolean(account && device?.active && deviceOwner && !isDeviceOwner);
 
   useEffect(() => {
     if (!window.ethereum) return;
@@ -309,7 +319,21 @@ export default function BotPulseDapp() {
     }
   }
 
+  function selectMyDeviceLabel() {
+    if (!account) return;
+    const personalLabel = `gateway-${account.slice(2, 8).toLowerCase()}`;
+    setDeviceLabel(personalLabel);
+    setMetadataURI(`ipfs://bot-pulse/${personalLabel}.json`);
+    setDevice(null);
+    setStatus("Demo device belongs to another wallet. Personal device label selected — register it first, then send a pulse.");
+  }
+
   async function registerDevice() {
+    if (deviceBelongsToAnotherWallet) {
+      selectMyDeviceLabel();
+      return;
+    }
+
     setBusy(true);
     try {
       await ensureBotChain();
@@ -333,6 +357,19 @@ export default function BotPulseDapp() {
   }
 
   async function sendHeartbeat() {
+    if (!account) {
+      setStatus("Connect a wallet before sending a pulse.");
+      return;
+    }
+    if (!device?.active) {
+      setStatus("Register this device with your wallet before sending a pulse.");
+      return;
+    }
+    if (!isDeviceOwner) {
+      setStatus("This device belongs to another wallet. Click Use My Device, register your own device, then send a pulse.");
+      return;
+    }
+
     setBusy(true);
     try {
       await ensureBotChain();
@@ -478,6 +515,11 @@ export default function BotPulseDapp() {
                 BOT explorer
               </a>
             </div>
+            {deviceBelongsToAnotherWallet ? (
+              <p className="mt-2 rounded-2xl bg-signal/15 p-3 text-sm font-bold text-signal-strong">
+                This demo device is owned by {shortAddress(device?.owner ?? "")}. Use your own device label to register and send pulses from your wallet.
+              </p>
+            ) : null}
             {chainId && !onCorrectChain ? (
               <p className="mt-2 rounded-2xl bg-signal/15 p-3 text-sm font-bold text-signal-strong">
                 Wrong chain detected. Switch to BOT Chain testnet chain ID 968.
@@ -488,7 +530,7 @@ export default function BotPulseDapp() {
           <div className="grid gap-4">
             <label className="grid gap-2 text-sm font-bold text-ink-soft">
               Device label
-              <input value={deviceLabel} onChange={(event) => setDeviceLabel(event.target.value)} className="rounded-2xl border border-black/10 bg-white/70 px-4 py-3 text-foreground outline-none focus:border-signal" />
+              <input value={deviceLabel} onChange={(event) => { setDeviceLabel(event.target.value); setDevice(null); }} className="rounded-2xl border border-black/10 bg-white/70 px-4 py-3 text-foreground outline-none focus:border-signal" />
             </label>
             <label className="grid gap-2 text-sm font-bold text-ink-soft">
               Metadata URI
@@ -511,10 +553,10 @@ export default function BotPulseDapp() {
               </label>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
-              <button onClick={registerDevice} disabled={busy || !account || Boolean(device?.active)} className="rounded-2xl bg-foreground px-5 py-3 font-black text-paper transition hover:bg-moss disabled:cursor-not-allowed disabled:opacity-50">
-                {device?.active ? "Registered" : "Register Device"}
+              <button onClick={registerDevice} disabled={busy || !account || Boolean(device?.active && isDeviceOwner)} className="rounded-2xl bg-foreground px-5 py-3 font-black text-paper transition hover:bg-moss disabled:cursor-not-allowed disabled:opacity-50">
+                {deviceBelongsToAnotherWallet ? "Use My Device" : device?.active && isDeviceOwner ? "Registered" : "Register Device"}
               </button>
-              <button onClick={sendHeartbeat} disabled={busy || !account} className="rounded-2xl bg-signal px-5 py-3 font-black text-white transition hover:bg-signal-strong disabled:cursor-not-allowed disabled:opacity-50">
+              <button onClick={sendHeartbeat} disabled={busy || !account || !device?.active || !isDeviceOwner} className="rounded-2xl bg-signal px-5 py-3 font-black text-white transition hover:bg-signal-strong disabled:cursor-not-allowed disabled:opacity-50">
                 Send Pulse
               </button>
               <button onClick={refreshDevice} disabled={busy} className="rounded-2xl border border-black/15 bg-paper px-5 py-3 font-black text-foreground transition hover:border-moss disabled:cursor-not-allowed disabled:opacity-50">
