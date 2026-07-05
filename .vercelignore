@@ -1,9 +1,12 @@
-.env
-.env.*.local
 node_modules
 .next
 artifacts
 cache
 types
 coverage
-*.log
+.env*
+!.env.example
+media
+*.zip
+.git
+.github
