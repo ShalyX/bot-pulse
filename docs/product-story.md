@@ -43,4 +43,4 @@ DePIN systems produce frequent small proofs: liveness, uptime, freshness, data a
 - Contract: https://scan.bohr.life/address/0x588eb96429A3c22f22848185F2b5FfD08AdfD8Ae
 - Deployment tx: https://scan.bohr.life/tx/0x30b40b0cf3b54c575db6926379d31d605e89210d87d46ddb81c26cd35bbfaeb3
 - Registration tx: https://scan.bohr.life/tx/0x94655b48d262f0664e88081b8f5b487fe5662aaf6da811bb94d24b19706ef530
-- Latest heartbeat tx: https://scan.bohr.life/tx/0x125160efd679ff49d0814e7cbebe4af2d190d26f86e87f0884dcc8801c7f336b
+- Latest heartbeat tx: https://scan.bohr.life/tx/0x7285fbae2a1507a5998936a5e99c8eb0e57a5f00727ef65aebdf6527d0dca2fb

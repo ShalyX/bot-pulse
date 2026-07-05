@@ -15,8 +15,8 @@ What is real in the demo:
 - explorer-verifiable transaction links
 
 Contract: https://scan.bohr.life/address/0x588eb96429A3c22f22848185F2b5FfD08AdfD8Ae
-Live app: {{LIVE_URL}}
-GitHub: {{GITHUB_URL}}
+Live app: https://bot-pulse-virid.vercel.app
+GitHub: https://github.com/ShalyX/bot-pulse
 
 Built for the DePIN / Real World track.
 @BOTChain_ai
@@ -35,10 +35,10 @@ The idea is simple: a device or gateway should be able to prove that it is alive
 
 This is intentionally a testnet MVP: simulated devices, on-chain freshness state, off-chain raw data, and no tokenomics or payouts. The point is to demonstrate a clean path for DePIN gateways, sensors, node operators, and data relays to publish verifier-friendly liveness signals on BOT Chain.
 
-Live app: {{LIVE_URL}}
-GitHub: {{GITHUB_URL}}
+Live app: https://bot-pulse-virid.vercel.app
+GitHub: https://github.com/ShalyX/bot-pulse
 Contract: https://scan.bohr.life/address/0x588eb96429A3c22f22848185F2b5FfD08AdfD8Ae
-Latest heartbeat: https://scan.bohr.life/tx/0x125160efd679ff49d0814e7cbebe4af2d190d26f86e87f0884dcc8801c7f336b
+Latest heartbeat: https://scan.bohr.life/tx/0x7285fbae2a1507a5998936a5e99c8eb0e57a5f00727ef65aebdf6527d0dca2fb
 
 ## Product one-liner
 
