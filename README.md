@@ -88,8 +88,8 @@ Wallet interaction notes:
 - Contract address: `0x588eb96429A3c22f22848185F2b5FfD08AdfD8Ae`
 - Deployment tx hash: `0x30b40b0cf3b54c575db6926379d31d605e89210d87d46ddb81c26cd35bbfaeb3`
 - Device registration tx hash: `0x94655b48d262f0664e88081b8f5b487fe5662aaf6da811bb94d24b19706ef530`
-- Heartbeat tx hash: `0x7285fbae2a1507a5998936a5e99c8eb0e57a5f00727ef65aebdf6527d0dca2fb`
-- Heartbeat explorer: `https://scan.bohr.life/tx/0x7285fbae2a1507a5998936a5e99c8eb0e57a5f00727ef65aebdf6527d0dca2fb`
+- Heartbeat tx hash: `0x6accffb04d604a0c6fa299db190574741b5b2b9c450398a9bfd82a9c29592251`
+- Heartbeat explorer: `https://scan.bohr.life/tx/0x6accffb04d604a0c6fa299db190574741b5b2b9c450398a9bfd82a9c29592251`
 - GitHub repo: `https://github.com/ShalyX/bot-pulse`
 - Live demo: `https://bot-pulse-virid.vercel.app`
 - X showcase post tagging `@BOTChain_ai`: add the final post URL before submission.

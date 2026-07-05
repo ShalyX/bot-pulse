@@ -38,7 +38,7 @@ This is intentionally a testnet MVP: simulated devices, on-chain freshness state
 Live app: https://bot-pulse-virid.vercel.app
 GitHub: https://github.com/ShalyX/bot-pulse
 Contract: https://scan.bohr.life/address/0x588eb96429A3c22f22848185F2b5FfD08AdfD8Ae
-Latest heartbeat: https://scan.bohr.life/tx/0x7285fbae2a1507a5998936a5e99c8eb0e57a5f00727ef65aebdf6527d0dca2fb
+Latest heartbeat: https://scan.bohr.life/tx/0x6accffb04d604a0c6fa299db190574741b5b2b9c450398a9bfd82a9c29592251
 
 ## Product one-liner
 
