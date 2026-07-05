@@ -179,6 +179,50 @@ export default function BotPulseDapp() {
   const deviceBelongsToAnotherWallet = Boolean(account && device?.active && deviceOwner && !isDeviceOwner);
 
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadPublicDeviceState() {
+      try {
+        const contract = new Contract(
+          BOT_PULSE_CONTRACT_ADDRESS,
+          BOT_PULSE_ABI,
+          new JsonRpcProvider(BOT_CHAIN_TESTNET.rpcUrl),
+        );
+        const [rawDevice, fresh] = await Promise.all([
+          contract.getDevice(deviceId),
+          contract.isFresh(deviceId) as Promise<boolean>,
+        ]);
+
+        if (cancelled) return;
+        setDevice({
+          owner: rawDevice.owner as string,
+          metadataURI: rawDevice.metadataURI as string,
+          registeredAt: rawDevice.registeredAt as bigint,
+          lastSeenAt: rawDevice.lastSeenAt as bigint,
+          heartbeatCount: rawDevice.heartbeatCount as bigint,
+          latestDataHash: rawDevice.latestDataHash as string,
+          latestMetricType: rawDevice.latestMetricType as string,
+          latestValue: rawDevice.latestValue as bigint,
+          active: rawDevice.active as boolean,
+          fresh,
+        });
+        setStatus(`Loaded ${deviceLabel} from BOT Chain. Connect a wallet to register or submit another pulse.`);
+      } catch {
+        if (!cancelled) {
+          setDevice(null);
+          setStatus("Connect a wallet to interact with the deployed BOT Chain contract.");
+        }
+      }
+    }
+
+    void loadPublicDeviceState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [deviceId, deviceLabel]);
+
+  useEffect(() => {
     if (!window.ethereum) return;
 
     let cancelled = false;

@@ -84,10 +84,20 @@ Wallet interaction notes:
 - Contract address: `0x588eb96429A3c22f22848185F2b5FfD08AdfD8Ae`
 - Deployment tx hash: `0x30b40b0cf3b54c575db6926379d31d605e89210d87d46ddb81c26cd35bbfaeb3`
 - Device registration tx hash: `0x94655b48d262f0664e88081b8f5b487fe5662aaf6da811bb94d24b19706ef530`
-- Heartbeat tx hash: `0x4b189fc03b048ac9ddb5f693ee7413f826d009ac61e691a6b19f5873bb3f6f93`
-- GitHub repo: TBD
-- Demo video/live demo: TBD
-- X showcase post tagging `@BOTChain_ai`: TBD
+- Heartbeat tx hash: `0x125160efd679ff49d0814e7cbebe4af2d190d26f86e87f0884dcc8801c7f336b`
+- Heartbeat explorer: `https://scan.bohr.life/tx/0x125160efd679ff49d0814e7cbebe4af2d190d26f86e87f0884dcc8801c7f336b`
+- GitHub repo: add the final public repo URL before submission.
+- Demo video/live demo: add the final recording or hosted URL before submission.
+- X showcase post tagging `@BOTChain_ai`: add the final post URL before submission.
+
+## Demo recording flow
+
+1. Run `npm run demo:heartbeat` shortly before recording so the deployed device shows `fresh` on load.
+2. Run `npm run dev` and open the printed local URL.
+3. Start on the hero: show the deployed contract card, `Heartbeat uplink confirmed`, and the BOT Chain links.
+4. Scroll to **Live contract controls** and show the public RPC-loaded state: owner, heartbeat count, latest metric/value, latest hash, and `fresh` badge.
+5. Open the heartbeat explorer URL above to verify the latest pulse transaction.
+6. Optional wallet path: connect a BOT Chain testnet-funded wallet, register a personal device label if prompted, then send a pulse from the UI.
 
 ## Honest limitations
 
