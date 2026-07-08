@@ -598,26 +598,26 @@ export default function BotPulseDapp() {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#07110c] text-[#f7f1e8]">
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_18%_8%,rgba(58,255,155,0.22),transparent_30rem),radial-gradient(circle_at_82%_12%,rgba(242,108,47,0.2),transparent_26rem),linear-gradient(180deg,#07110c_0%,#0b1810_42%,#10150f_100%)]" />
-      <div className="relative z-10">
-        <nav className="mx-auto mt-5 flex max-w-7xl items-center justify-between rounded-full border border-white/10 bg-white/[0.06] px-4 py-3 shadow-2xl shadow-black/30 backdrop-blur-xl sm:px-5">
+    <main className="bot-pulse-shell min-h-screen overflow-hidden bg-[#f4eddb] text-[#14291c]">
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[linear-gradient(180deg,#f7f0df_0%,#efe5cf_58%,#e8ddc6_100%)]" />
+      <div className="relative z-10 grid-paper">
+        <nav className="mx-auto mt-5 flex max-w-7xl items-center justify-between rounded-[1.1rem] border border-[#243524]/12 bg-[#fff9ea] px-4 py-3 shadow-[0_10px_24px_rgba(24,39,28,0.08)] sm:px-5">
           <a href="#top" className="flex items-center gap-3" aria-label="BOT Pulse home">
-            <div className="relative flex size-11 items-center justify-center rounded-2xl border border-[#8dffbe]/30 bg-[#102619] text-xl font-black text-[#8dffbe] shadow-[0_0_34px_rgba(141,255,190,0.22)]">
-              <span className="absolute inset-1 rounded-xl border border-white/10" />
+            <div className="relative flex size-11 items-center justify-center rounded-lg border border-[#21452d]/15 bg-[#1e6b3b] text-xl font-black text-[#d8ff7a] shadow-[0_8px_18px_rgba(24,39,28,0.12)]">
+              <span className="absolute inset-1 rounded-xl border border-[#243524]/12" />
               ⌁
             </div>
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.34em] text-white">BOT Pulse</p>
-              <p className="text-xs font-semibold text-[#adc7b5]">SLA heartbeat watchtower</p>
+              <p className="type-label text-[#14291c]">BOT Pulse</p>
+              <p className="text-xs font-medium text-[#546953]">SLA heartbeat watchtower</p>
             </div>
           </a>
 
-          <div className="hidden items-center gap-5 text-sm font-bold text-[#adc7b5] md:flex">
-            <a href="#product" className="transition hover:text-white">Product</a>
-            <a href="#live-state" className="transition hover:text-white">Live proof</a>
-            <a href="#interact" className="transition hover:text-white">Try it</a>
-            <a href="#evidence" className="transition hover:text-white">Evidence</a>
+          <div className="hidden items-center gap-5 text-sm font-semibold text-[#50644f] md:flex">
+            <a href="#product" className="transition hover:text-[#1e6b3b]">Product</a>
+            <a href="#live-state" className="transition hover:text-[#1e6b3b]">Live proof</a>
+            <a href="/demo#interact" className="transition hover:text-[#1e6b3b]">Demo page</a>
+            <a href="#evidence" className="transition hover:text-[#1e6b3b]">Evidence</a>
           </div>
 
           <div className="flex items-center gap-2">
@@ -626,7 +626,7 @@ export default function BotPulseDapp() {
                 aria-label="Select wallet"
                 value={selectedWalletId}
                 onChange={(event) => setSelectedWalletId(event.target.value)}
-                className="hidden rounded-full border border-white/10 bg-black/25 px-3 py-2 text-sm font-bold text-white outline-none focus:border-[#8dffbe] sm:block"
+                className="hidden rounded-lg border border-[#243524]/15 bg-[#fff6e1] px-3 py-2 text-sm font-semibold text-[#14291c] outline-none focus:border-[#1e6b3b] sm:block"
               >
                 {wallets.map((wallet) => (
                   <option key={wallet.id} value={wallet.id}>{wallet.name}</option>
@@ -636,7 +636,7 @@ export default function BotPulseDapp() {
             <button
               onClick={connectWallet}
               disabled={busy || !selectedWallet}
-              className="rounded-full border border-[#8dffbe]/30 bg-[#8dffbe] px-4 py-2 text-sm font-black text-[#07110c] shadow-[0_0_30px_rgba(141,255,190,0.22)] transition hover:scale-[1.02] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-lg border border-[#1e6b3b] bg-[#d8ff7a] px-4 py-2 text-sm font-bold text-[#14291c] transition hover:bg-[#c8f35d] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {account ? shortAddress(account) : busy ? "Opening…" : selectedWallet ? `Connect ${selectedWalletName}` : "No wallet"}
             </button>
@@ -645,17 +645,17 @@ export default function BotPulseDapp() {
 
         <section id="top" className="mx-auto grid max-w-7xl gap-8 px-5 pb-10 pt-14 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:pb-16 lg:pt-20">
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-3 rounded-full border border-[#8dffbe]/20 bg-[#8dffbe]/10 px-4 py-2 text-sm font-black uppercase tracking-[0.2em] text-[#8dffbe]">
-              <span className="size-2 rounded-full bg-[#8dffbe] shadow-[0_0_18px_rgba(141,255,190,0.8)]" />
+            <div className="inline-flex items-center gap-3 rounded-lg border border-[#1e6b3b]/20 bg-[#d8ff7a]/40 px-4 py-2 type-label text-[#1e6b3b]">
+              <span className="size-2 rounded-full bg-[#1e6b3b] " />
               BOT Chain testnet · DePIN liveness
             </div>
 
             <div className="space-y-5">
-              <h1 className="max-w-5xl text-6xl font-black leading-[0.88] tracking-[-0.08em] text-white sm:text-7xl lg:text-8xl">
-                Public uptime proof for small DePIN fleets.
+              <h1 className="type-hero max-w-5xl text-[#14291c]">
+                Uptime proof people can inspect before trust is asked for.
               </h1>
-              <p className="max-w-2xl text-lg leading-8 text-[#c8d8cd] sm:text-xl">
-                BOT Pulse turns gateway check-ins into a visible SLA layer: a device registers, submits packet hashes to BOT Chain, and the page reads the contract to show whether the latest heartbeat is still covered.
+              <p className="type-body max-w-2xl text-[#4f614f]">
+                BOT Pulse is a dedicated landing page and live demo for a narrow BOT Chain primitive: devices commit heartbeat packet hashes, customers see the breach clock, and every claim links back to contract state.
               </p>
             </div>
 
@@ -665,28 +665,28 @@ export default function BotPulseDapp() {
                 ["Now", liveSlaState, breachEta],
                 ["Network", "BOT", "testnet chain 968"],
               ].map(([label, value, sub]) => (
-                <div key={label} className="rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-4 shadow-2xl shadow-black/20 backdrop-blur">
-                  <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8dffbe]">{label}</p>
-                  <p className="mt-2 text-2xl font-black text-white">{value}</p>
+                <div key={label} className="rounded-xl border border-[#243524]/12 bg-[#fff9ea] p-4 shadow-[0_12px_24px_rgba(24,39,28,0.08)] ">
+                  <p className="text-xs type-label tracking-[0.24em] text-[#8dffbe]">{label}</p>
+                  <p className="mt-2 text-2xl font-black text-[#14291c]">{value}</p>
                   <p className="text-sm font-semibold text-[#9ab0a2]">{sub}</p>
                 </div>
               ))}
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <a href="#interact" className="rounded-full bg-[#f26c2f] px-6 py-3 text-center font-black text-white shadow-[0_16px_40px_rgba(242,108,47,0.28)] transition hover:scale-[1.02] hover:bg-[#ff8a4f]">
-                Send a heartbeat
+              <a href="/demo#interact" className="rounded-full bg-[#f26c2f] px-6 py-3 text-center font-black text-white shadow-[0_12px_24px_rgba(185,74,29,0.20)] transition hover:scale-[1.02] hover:bg-[#ff8a4f]">
+                Open live demo
               </a>
-              <a href={explorerAddress(BOT_PULSE_CONTRACT_ADDRESS)} target="_blank" rel="noreferrer" className="rounded-full border border-white/12 bg-white/[0.07] px-6 py-3 text-center font-black text-white transition hover:border-[#8dffbe]/50 hover:text-[#8dffbe]">
+              <a href={explorerAddress(BOT_PULSE_CONTRACT_ADDRESS)} target="_blank" rel="noreferrer" className="rounded-full border border-[#14291c]/15 bg-[#fff9ea] px-6 py-3 text-center font-black text-[#14291c] transition hover:border-[#1e6b3b]/50 hover:text-[#1e6b3b]">
                 Verify contract
               </a>
-              <a href="#product" className="rounded-full border border-white/12 bg-transparent px-6 py-3 text-center font-black text-[#c8d8cd] transition hover:border-white/30 hover:text-white">
-                See landing story
+              <a href="#product" className="rounded-full border border-[#14291c]/12 bg-transparent px-6 py-3 text-center font-black text-[#5a6b58] transition hover:border-[#14291c]/30 hover:text-[#14291c]">
+                Read the product story
               </a>
             </div>
           </div>
 
-          <div id="live-state" className={`pulse-stage relative min-h-[620px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#0b1c12]/[0.88] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.45)] backdrop-blur-xl ${pulseNonce ? "pulse-confirmed" : ""}`} key={pulseNonce}>
+          <div id="live-state" className={`pulse-stage relative min-h-[620px] overflow-hidden rounded-[1.5rem] border border-[#243524]/12 bg-[#13291d] p-5 shadow-[0_22px_48px_rgba(24,39,28,0.18)]  ${pulseNonce ? "pulse-confirmed" : ""}`} key={pulseNonce}>
             <div className="absolute inset-0 bg-[linear-gradient(rgba(141,255,190,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(141,255,190,0.08)_1px,transparent_1px)] bg-[size:42px_42px]" />
             <div className="pulse-wave"></div>
             <div className="pulse-wave"></div>
@@ -695,8 +695,8 @@ export default function BotPulseDapp() {
 
             <div className="relative z-10 flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.26em] text-[#8dffbe]">Live contract read</p>
-                <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] text-white">Gateway liveness panel</h2>
+                <p className="text-xs type-label tracking-[0.26em] text-[#8dffbe]">Live contract read</p>
+                <h2 className="mt-2 text-2xl font-display font-black tracking-[-0.015em] text-white">Gateway liveness panel</h2>
               </div>
               <span className={`rounded-full px-4 py-2 text-sm font-black ${device?.fresh ? "bg-[#8dffbe] text-[#07110c]" : "bg-[#f26c2f] text-white"}`}>
                 {publicLoading ? "syncing" : device?.fresh ? "covered" : "stale"}
@@ -706,27 +706,27 @@ export default function BotPulseDapp() {
             <div className="absolute left-1/2 top-32 z-10 h-64 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-[#8dffbe]/70 to-transparent"></div>
             <div className="absolute left-1/2 top-40 z-10 flex -translate-x-1/2 flex-col items-center gap-5">
               {["packet hash", "BOT tx", "freshness read", "breach clock"].map((label) => (
-                <div key={label} className="uplink-dot rounded-full border border-[#8dffbe]/25 bg-[#0f2518]/95 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-[#8dffbe] shadow-[0_0_24px_rgba(141,255,190,0.16)]">
+                <div key={label} className="uplink-dot rounded-full border border-[#8dffbe]/25 bg-[#0f2518]/95 px-3 py-1 text-xs type-label tracking-[0.18em] text-[#8dffbe] ">
                   {label}
                 </div>
               ))}
             </div>
 
-            <div className="absolute inset-x-5 bottom-5 z-10 rounded-[2rem] border border-white/10 bg-[#08120d]/95 p-5 shadow-2xl shadow-black/40">
+            <div className="absolute inset-x-5 bottom-5 z-10 rounded-[1.25rem] border border-[#243524]/12 bg-[#08120d]/95 p-5 shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
               <div className="mb-4 grid gap-3 sm:grid-cols-3">
                 {[
                   ["State", liveSlaState],
                   ["Clock", slaClock],
                   ["Proofs", device ? device.heartbeatCount.toString() : "—"],
                 ].map(([label, value]) => (
-                  <div key={label} className="rounded-2xl border border-white/8 bg-white/[0.05] p-3">
-                    <p className="text-xs font-black uppercase tracking-[0.22em] text-[#adc7b5]">{label}</p>
-                    <p className="mt-1 break-words text-lg font-black text-white">{value}</p>
+                  <div key={label} className="rounded-xl border border-[#f7f0df]/10 bg-white/[0.05] p-3">
+                    <p className="text-xs type-label tracking-[0.22em] text-[#adc7b5]">{label}</p>
+                    <p className="mt-1 break-words text-lg font-black text-[#f7f0df]">{value}</p>
                   </div>
                 ))}
               </div>
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#f26c2f]">{deviceLabel || "Gateway"}</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.05em] text-white">
+              <p className="text-xs type-label tracking-[0.24em] text-[#f26c2f]">{deviceLabel || "Gateway"}</p>
+              <h2 className="mt-2 text-3xl font-display font-black tracking-[-0.02em] text-white">
                 {device?.fresh ? "Heartbeat inside the SLA window." : device?.lastSeenAt && device.lastSeenAt > 0n ? "Missed heartbeat is visible." : "Ready for first uptime proof."}
               </h2>
               <p className="mt-2 max-w-xl text-sm leading-6 text-[#adc7b5]">
@@ -737,11 +737,11 @@ export default function BotPulseDapp() {
         </section>
 
         <section id="product" className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:py-12">
-          <div className="rounded-[2.25rem] border border-white/10 bg-white/[0.055] p-5 shadow-2xl shadow-black/25 backdrop-blur-xl lg:p-8">
+          <div className="rounded-[1.375rem] border border-[#243524]/12 bg-[#13291d]/[0.92] p-5 shadow-[0_18px_40px_rgba(24,39,28,0.10)]  lg:p-8">
             <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.28em] text-[#8dffbe]">Product story</p>
-                <h2 className="mt-3 text-4xl font-black tracking-[-0.06em] text-white sm:text-5xl">From “device pinged” to proof customers can inspect.</h2>
+                <p className="text-xs type-label tracking-[0.28em] text-[#8dffbe]">Product story</p>
+                <h2 className="mt-3 text-4xl font-display font-black tracking-[-0.025em] text-white sm:text-5xl">From “device pinged” to proof customers can inspect.</h2>
               </div>
               <p className="text-base leading-8 text-[#c8d8cd]">
                 BOT Pulse is intentionally narrow: it does not pretend to be production DePIN infrastructure. It demonstrates a useful primitive for operators, reviewers, and customers — public liveness evidence with a short breach clock and explorer-verifiable transaction trail.
@@ -754,9 +754,9 @@ export default function BotPulseDapp() {
                 ["02", "Commit", "Each heartbeat stores the latest packet hash and metric value without exposing raw device data."],
                 ["03", "Inspect", "The frontend reads the contract, calculates freshness, and sends users to explorer evidence."],
               ].map(([number, title, body]) => (
-                <article key={title} className="rounded-[1.75rem] border border-white/10 bg-[#09150f] p-5">
+                <article key={title} className="rounded-xl border border-[#243524]/12 bg-[#172f22] p-5">
                   <p className="text-sm font-black text-[#f26c2f]">{number}</p>
-                  <h3 className="mt-4 text-2xl font-black tracking-[-0.04em] text-white">{title}</h3>
+                  <h3 className="mt-4 text-2xl font-display font-black tracking-[-0.015em] text-white">{title}</h3>
                   <p className="mt-3 text-sm leading-6 text-[#adc7b5]">{body}</p>
                 </article>
               ))}
@@ -764,12 +764,54 @@ export default function BotPulseDapp() {
           </div>
         </section>
 
+        <section id="demo-page" className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:py-12">
+          <div className="relative overflow-hidden rounded-[1.5rem] border border-[#8dffbe]/18 bg-[#f7f1e8] p-5 text-[#07110c] shadow-[0_18px_40px_rgba(24,39,28,0.14)] lg:p-8">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_10%,rgba(75,212,134,0.35),transparent_22rem),radial-gradient(circle_at_86%_16%,rgba(242,108,47,0.28),transparent_22rem)]" />
+            <div className="relative z-10 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+              <div>
+                <p className="text-xs type-label tracking-[0.28em] text-[#386948]">Dedicated demo route</p>
+                <h2 className="mt-3 max-w-3xl text-5xl font-black leading-[0.9] tracking-[-0.04em] sm:text-6xl">No hidden widget. No buried form. The demo has its own page.</h2>
+                <p className="mt-5 max-w-2xl text-base font-semibold leading-7 text-[#455348]">
+                  Judges can land on the story, then jump into a focused `/demo` route where the browser provider selector, BOT Chain lock, contract readout, tx actions, registry rows, and explorer evidence are all in one place.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <a href="/demo#interact" className="rounded-full bg-[#07110c] px-6 py-3 font-black text-white transition hover:bg-[#183523]">Launch /demo</a>
+                  <a href="#interact" className="rounded-full border border-[#07110c]/15 px-6 py-3 font-black text-[#07110c] transition hover:border-[#07110c]/40">Use embedded demo</a>
+                </div>
+              </div>
+              <div className="rounded-[1.25rem] border border-[#07110c]/10 bg-[#07110c] p-4 text-white shadow-2xl">
+                <div className="mb-4 flex items-center justify-between border-b border-[#f7f0df]/12 pb-4">
+                  <div>
+                    <p className="text-xs type-label tracking-[0.24em] text-[#8dffbe]">Demo console</p>
+                    <p className="mt-1 text-sm font-semibold text-[#50644f]">BOT Chain Testnet · chain 968 · provider-gated writes</p>
+                  </div>
+                  <span className="rounded-full bg-[#8dffbe] px-3 py-1 text-xs font-black text-[#07110c]">/demo</span>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {[
+                    ["1", "Select provider", "EIP-6963 + injected wallets; selected provider is reused for signer, listeners, chain switch, and transactions."],
+                    ["2", "Read first", "Public RPC loads the registry before any wallet prompt, so the demo still explains itself."],
+                    ["3", "Write only when ready", "Register and heartbeat buttons unlock after BOT Chain is selected and an account is connected."],
+                    ["4", "Verify", "Every submitted tx is appended as an explorer link instead of pretending off-chain status is proof."],
+                  ].map(([step, title, body]) => (
+                    <div key={title} className="rounded-xl border border-[#243524]/12 bg-[#13291d]/[0.92] p-4">
+                      <p className="text-sm font-black text-[#f26c2f]">{step}</p>
+                      <h3 className="mt-2 text-xl font-display font-black tracking-[-0.015em] text-white">{title}</h3>
+                      <p className="mt-2 text-sm leading-6 text-[#adc7b5]">{body}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section id="interact" className="mx-auto grid max-w-7xl gap-6 px-5 py-8 sm:px-8 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-[2rem] border border-white/10 bg-[#0c1a12]/90 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
+          <div className="rounded-[1.25rem] border border-[#243524]/12 bg-[#13291d] p-5 shadow-[0_18px_40px_rgba(24,39,28,0.12)] ">
             <div className="mb-5">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8dffbe]">SLA proof controls</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">Register a device, then prove uptime.</h2>
-              <p className="mt-2 max-h-28 overflow-auto break-words rounded-2xl border border-white/8 bg-white/[0.055] p-3 text-sm leading-6 text-[#c8d8cd]">{status}</p>
+              <p className="text-xs type-label tracking-[0.24em] text-[#8dffbe]">SLA proof controls</p>
+              <h2 className="mt-2 text-3xl font-display font-black tracking-[-0.015em] text-white">Register a device, then prove uptime.</h2>
+              <p className="mt-2 max-h-28 overflow-auto break-words rounded-xl border border-[#f7f0df]/10 bg-[#13291d]/[0.92] p-3 text-sm leading-6 text-[#c8d8cd]">{status}</p>
               <div className="mt-3 flex flex-wrap gap-2 text-sm font-bold">
                 <a href={BOT_CHAIN_TESTNET.faucetUrl} target="_blank" rel="noreferrer" className="rounded-full bg-[#f26c2f]/15 px-3 py-2 text-[#ffb089] hover:bg-[#f26c2f]/25">
                   Faucet: get test BOT
@@ -779,44 +821,44 @@ export default function BotPulseDapp() {
                 </a>
               </div>
               {deviceBelongsToAnotherWallet ? (
-                <p className="mt-3 rounded-2xl bg-[#f26c2f]/15 p-3 text-sm font-bold text-[#ffb089]">
+                <p className="mt-3 rounded-xl bg-[#f26c2f]/15 p-3 text-sm font-bold text-[#ffb089]">
                   Seeded challenge gateway is owned by {shortAddress(device?.owner ?? "")}. Use your own device label to register and send pulses from your wallet.
                 </p>
               ) : null}
               {chainId && !onCorrectChain ? (
-                <p className="mt-3 rounded-2xl bg-[#f26c2f]/15 p-3 text-sm font-bold text-[#ffb089]">
+                <p className="mt-3 rounded-xl bg-[#f26c2f]/15 p-3 text-sm font-bold text-[#ffb089]">
                   Wrong chain detected. Switch to BOT Chain testnet chain ID 968.
                 </p>
               ) : null}
             </div>
 
             <div className="grid gap-4">
-              <label className="grid gap-2 text-sm font-bold text-[#adc7b5]">
-                Preferred wallet
+              <label className="grid gap-2 text-sm font-semibold text-[#50644f]">
+                Browser wallet provider
                 <select
                   value={selectedWalletId}
                   onChange={(event) => setSelectedWalletId(event.target.value)}
                   disabled={!wallets.length || busy}
-                  className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-xl border border-[#243524]/12 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {wallets.length ? wallets.map((wallet) => (
                     <option key={wallet.id} value={wallet.id}>{wallet.name}</option>
                   )) : <option value="">No injected wallet detected</option>}
                 </select>
-                <span className="text-xs font-semibold text-[#8ea497]">Transactions are forced onto BOT Chain Testnet ({BOT_CHAIN_TESTNET.chainIdHex}) before the account request opens.</span>
+                <span className="text-xs font-semibold text-[#8ea497]">This uses the selected injected provider directly, not a mystery WalletConnect modal. The same provider handles account access, chain switching, signer creation, listeners, and transactions. Writes are forced onto BOT Chain Testnet ({BOT_CHAIN_TESTNET.chainIdHex}) before the account request opens.</span>
               </label>
-              <label className="grid gap-2 text-sm font-bold text-[#adc7b5]">
+              <label className="grid gap-2 text-sm font-semibold text-[#50644f]">
                 Device label
-                <input value={deviceLabel} onChange={(event) => { setDeviceLabel(event.target.value); setDevice(null); }} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe]" />
+                <input value={deviceLabel} onChange={(event) => { setDeviceLabel(event.target.value); setDevice(null); }} className="rounded-xl border border-[#243524]/12 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe]" />
               </label>
-              <label className="grid gap-2 text-sm font-bold text-[#adc7b5]">
+              <label className="grid gap-2 text-sm font-semibold text-[#50644f]">
                 Metadata URI
-                <input value={metadataURI} onChange={(event) => setMetadataURI(event.target.value)} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe]" />
+                <input value={metadataURI} onChange={(event) => setMetadataURI(event.target.value)} className="rounded-xl border border-[#243524]/12 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe]" />
               </label>
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className="grid gap-2 text-sm font-bold text-[#adc7b5]">
+                <label className="grid gap-2 text-sm font-semibold text-[#50644f]">
                   Metric type
-                  <select value={metricType} onChange={(event) => setMetricType(event.target.value)} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe]">
+                  <select value={metricType} onChange={(event) => setMetricType(event.target.value)} className="rounded-xl border border-[#243524]/12 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe]">
                     <option value="latency_ms">latency_ms</option>
                     <option value="temperature_c">temperature_c</option>
                     <option value="uptime_pct">uptime_pct</option>
@@ -824,29 +866,29 @@ export default function BotPulseDapp() {
                     <option value="pm25">pm25</option>
                   </select>
                 </label>
-                <label className="grid gap-2 text-sm font-bold text-[#adc7b5]">
+                <label className="grid gap-2 text-sm font-semibold text-[#50644f]">
                   Metric value
-                  <input value={metricValue} onChange={(event) => setMetricValue(event.target.value.replace(/[^0-9-]/g, ""))} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe]" />
+                  <input value={metricValue} onChange={(event) => setMetricValue(event.target.value.replace(/[^0-9-]/g, ""))} className="rounded-xl border border-[#243524]/12 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe]" />
                 </label>
               </div>
               {!account ? (
                 <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                  <button onClick={connectWallet} disabled={busy || !selectedWallet} className="rounded-2xl bg-[#8dffbe] px-5 py-3 font-black text-[#07110c] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50">
+                  <button onClick={connectWallet} disabled={busy || !selectedWallet} className="rounded-xl bg-[#8dffbe] px-5 py-3 font-black text-[#07110c] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50">
                     {selectedWallet ? `Connect ${selectedWalletName} on BOT Chain` : "Install an EVM wallet"}
                   </button>
-                  <button onClick={refreshDevice} disabled={busy} className="rounded-2xl border border-white/12 bg-white/[0.06] px-5 py-3 font-black text-white transition hover:border-[#8dffbe]/45 disabled:cursor-not-allowed disabled:opacity-50">
+                  <button onClick={refreshDevice} disabled={busy} className="rounded-xl border border-white/12 bg-[#fff9ea] px-5 py-3 font-black text-white transition hover:border-[#8dffbe]/45 disabled:cursor-not-allowed disabled:opacity-50">
                     Refresh state
                   </button>
                 </div>
               ) : (
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <button onClick={registerDevice} disabled={busy || Boolean(device?.active && isDeviceOwner)} className="rounded-2xl bg-white px-5 py-3 font-black text-[#07110c] transition hover:bg-[#8dffbe] disabled:cursor-not-allowed disabled:opacity-50">
+                  <button onClick={registerDevice} disabled={busy || Boolean(device?.active && isDeviceOwner)} className="rounded-xl bg-white px-5 py-3 font-black text-[#07110c] transition hover:bg-[#8dffbe] disabled:cursor-not-allowed disabled:opacity-50">
                     {registerButtonLabel}
                   </button>
-                  <button onClick={sendHeartbeat} disabled={busy || !device?.active || !isDeviceOwner} className="rounded-2xl bg-[#f26c2f] px-5 py-3 font-black text-white transition hover:bg-[#ff8a4f] disabled:cursor-not-allowed disabled:opacity-50">
+                  <button onClick={sendHeartbeat} disabled={busy || !device?.active || !isDeviceOwner} className="rounded-xl bg-[#f26c2f] px-5 py-3 font-black text-white transition hover:bg-[#ff8a4f] disabled:cursor-not-allowed disabled:opacity-50">
                     {heartbeatButtonLabel}
                   </button>
-                  <button onClick={refreshDevice} disabled={busy} className="rounded-2xl border border-white/12 bg-white/[0.06] px-5 py-3 font-black text-white transition hover:border-[#8dffbe]/45 disabled:cursor-not-allowed disabled:opacity-50">
+                  <button onClick={refreshDevice} disabled={busy} className="rounded-xl border border-white/12 bg-[#fff9ea] px-5 py-3 font-black text-white transition hover:border-[#8dffbe]/45 disabled:cursor-not-allowed disabled:opacity-50">
                     Refresh state
                   </button>
                 </div>
@@ -854,11 +896,11 @@ export default function BotPulseDapp() {
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-white/10 bg-[#0c1a12]/90 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl" id="contract">
+          <div className="rounded-[1.25rem] border border-[#243524]/12 bg-[#13291d] p-5 shadow-[0_18px_40px_rgba(24,39,28,0.12)] " id="contract">
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8dffbe]">On-chain SLA state</p>
-                <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">Freshness becomes accountability.</h2>
+                <p className="text-xs type-label tracking-[0.24em] text-[#8dffbe]">On-chain SLA state</p>
+                <h2 className="mt-2 text-3xl font-display font-black tracking-[-0.015em] text-white">Freshness becomes accountability.</h2>
               </div>
               <span className={`rounded-full px-4 py-2 text-sm font-black ${device?.fresh ? "bg-[#8dffbe] text-[#07110c]" : "bg-[#f26c2f] text-white"}`}>
                 {publicLoading ? "loading" : device?.fresh ? "fresh" : "SLA breach"}
@@ -877,14 +919,14 @@ export default function BotPulseDapp() {
                 ["last seen", device ? formatTimestamp(device.lastSeenAt) : "—"],
                 ["active", device ? (device.active ? "yes" : "no") : "—"],
               ].map(([label, value]) => (
-                <div key={label} className="rounded-2xl border border-white/8 bg-white/[0.055] p-4">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-[#adc7b5]">{label}</p>
-                  <p className="mt-2 break-words text-lg font-black text-white">{value}</p>
+                <div key={label} className="rounded-xl border border-[#f7f0df]/10 bg-[#13291d]/[0.92] p-4">
+                  <p className="text-xs type-label tracking-[0.2em] text-[#adc7b5]">{label}</p>
+                  <p className="mt-2 break-words text-lg font-black text-[#f7f0df]">{value}</p>
                 </div>
               ))}
             </div>
 
-            <div className="mt-4 rounded-2xl border border-[#8dffbe]/15 bg-black/30 p-4 font-mono text-xs leading-6 text-[#adc7b5]">
+            <div className="mt-4 rounded-xl border border-[#8dffbe]/15 bg-black/30 p-4 font-mono text-xs font-semibold leading-6 text-[#adc7b5]">
               deviceId: {deviceId}<br />
               latestHash: {device?.latestDataHash || "—"}
             </div>
@@ -892,11 +934,11 @@ export default function BotPulseDapp() {
         </section>
 
         <section id="evidence" className="mx-auto grid max-w-7xl gap-6 px-5 py-8 sm:px-8 lg:grid-cols-[1.2fr_.8fr]">
-          <div className="rounded-[2rem] border border-white/10 bg-[#0c1a12]/90 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
+          <div className="rounded-[1.25rem] border border-[#243524]/12 bg-[#13291d] p-5 shadow-[0_18px_40px_rgba(24,39,28,0.12)] ">
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8dffbe]">Live registry</p>
-                <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">Only devices read from the contract.</h2>
+                <p className="text-xs type-label tracking-[0.24em] text-[#8dffbe]">Live registry</p>
+                <h2 className="mt-2 text-3xl font-display font-black tracking-[-0.015em] text-white">Only devices read from the contract.</h2>
               </div>
               <div className="rounded-full bg-[#8dffbe] px-4 py-2 text-sm font-black text-[#07110c]">
                 {publicLoading ? "reading RPC" : publicError ? "RPC unavailable" : `${registryDevices.length} on-chain`}
@@ -904,35 +946,35 @@ export default function BotPulseDapp() {
             </div>
 
             {publicError ? (
-              <p className="rounded-2xl bg-[#f26c2f]/15 p-4 text-sm font-bold leading-6 text-[#ffb089]">{publicError}</p>
+              <p className="rounded-xl bg-[#f26c2f]/15 p-4 text-sm font-bold leading-6 text-[#ffb089]">{publicError}</p>
             ) : null}
 
             <div className="grid gap-4 md:grid-cols-2">
               {registryDevices.map((entry, index) => {
                 const state = slaState(entry.snapshot);
                 return (
-                  <article key={entry.id} className="rounded-[1.5rem] border border-white/10 bg-white/[0.055] p-4">
+                  <article key={entry.id} className="rounded-[1.5rem] border border-[#243524]/12 bg-[#13291d]/[0.92] p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="font-black capitalize text-white">{metadataName(entry.snapshot.metadataURI, entry.id)}</p>
-                        <p className="mt-1 break-all font-mono text-xs text-[#8ea497]">{entry.id}</p>
+                        <p className="mt-1 break-all font-mono text-xs font-semibold text-[#8ea497]">{entry.id}</p>
                       </div>
                       <span className={`rounded-full px-3 py-1 text-xs font-black uppercase ${entry.snapshot.fresh ? "bg-[#8dffbe]/18 text-[#8dffbe]" : "bg-[#f26c2f]/18 text-[#ffb089]"}`}>
                         {state}
                       </span>
                     </div>
-                    <div className="my-5 grid gap-3 rounded-2xl border border-white/8 bg-black/20 p-4 sm:grid-cols-3">
+                    <div className="my-5 grid gap-3 rounded-xl border border-[#f7f0df]/10 bg-black/20 p-4 sm:grid-cols-3">
                       <div>
-                        <p className="text-xs font-black uppercase tracking-[0.2em] text-[#adc7b5]">metric</p>
-                        <p className="mt-1 text-base font-black leading-tight text-white">{formatMetricLabel(entry.snapshot.latestMetricType)}</p>
+                        <p className="text-xs type-label tracking-[0.2em] text-[#adc7b5]">metric</p>
+                        <p className="mt-1 text-base font-black leading-tight text-[#f7f0df]">{formatMetricLabel(entry.snapshot.latestMetricType)}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-black uppercase tracking-[0.2em] text-[#adc7b5]">value</p>
-                        <p className="mt-1 text-lg font-black text-white">{entry.snapshot.latestValue.toString()}</p>
+                        <p className="text-xs type-label tracking-[0.2em] text-[#adc7b5]">value</p>
+                        <p className="mt-1 text-lg font-black text-[#f7f0df]">{entry.snapshot.latestValue.toString()}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-black uppercase tracking-[0.2em] text-[#adc7b5]">proofs</p>
-                        <p className="mt-1 text-lg font-black text-white">{entry.snapshot.heartbeatCount.toString()}</p>
+                        <p className="text-xs type-label tracking-[0.2em] text-[#adc7b5]">proofs</p>
+                        <p className="mt-1 text-lg font-black text-[#f7f0df]">{entry.snapshot.heartbeatCount.toString()}</p>
                       </div>
                     </div>
                     <div className="grid gap-2 text-xs font-bold text-[#adc7b5] sm:grid-cols-2">
@@ -940,7 +982,7 @@ export default function BotPulseDapp() {
                       <span>{formatSlaClock(entry.snapshot.lastSeenAt)}</span>
                     </div>
                     {index === 0 ? (
-                      <p className="mt-3 rounded-2xl bg-[#8dffbe]/12 p-3 text-xs font-bold leading-5 text-[#8dffbe]">
+                      <p className="mt-3 rounded-xl bg-[#8dffbe]/12 p-3 text-xs font-bold leading-5 text-[#8dffbe]">
                         Seeded challenge gateway. More rows appear only after wallets register more devices on-chain.
                       </p>
                     ) : null}
@@ -950,15 +992,15 @@ export default function BotPulseDapp() {
             </div>
           </div>
 
-          <aside className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#0c1a12]/90 p-5 text-white shadow-2xl shadow-black/30 backdrop-blur-xl">
+          <aside className="relative overflow-hidden rounded-[1.25rem] border border-[#243524]/12 bg-[#13291d] p-5 text-white shadow-[0_18px_40px_rgba(24,39,28,0.12)] ">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(242,108,47,0.16),transparent_18rem),linear-gradient(rgba(141,255,190,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(141,255,190,0.06)_1px,transparent_1px)] bg-[size:auto,38px_38px,38px_38px]" />
             <div className="relative z-10">
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8dffbe]">Evidence trail</p>
-            <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">Every visible status must come from a contract read or submitted tx.</h2>
+            <p className="text-xs type-label tracking-[0.24em] text-[#8dffbe]">Evidence trail</p>
+            <h2 className="mt-2 text-3xl font-display font-black tracking-[-0.015em] text-white">Every visible status must come from a contract read or submitted tx.</h2>
             {txLog.length ? (
               <ol className="mt-6 space-y-3">
                 {txLog.map((entry) => (
-                  <li key={`${entry.label}-${entry.hash}`} className="rounded-2xl border border-white/10 bg-white/[0.055] p-3 text-sm leading-6 text-[#adc7b5]">
+                  <li key={`${entry.label}-${entry.hash}`} className="rounded-xl border border-[#243524]/12 bg-[#13291d]/[0.92] p-3 text-sm leading-6 text-[#adc7b5]">
                     <a href={explorerTx(entry.hash)} target="_blank" rel="noreferrer" className="font-black text-[#8dffbe] hover:text-white">
                       {entry.label}: {shortAddress(entry.hash)}
                     </a>
@@ -966,11 +1008,11 @@ export default function BotPulseDapp() {
                 ))}
               </ol>
             ) : (
-              <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.055] p-4 text-sm font-semibold leading-6 text-[#adc7b5]">
+              <div className="mt-6 rounded-xl border border-[#243524]/12 bg-[#13291d]/[0.92] p-4 text-sm font-semibold leading-6 text-[#adc7b5]">
                 No wallet transaction has been sent in this browser session. Use the contract link to verify the deployed registry, or connect a wallet to produce a new explorer-linked transaction.
               </div>
             )}
-            <div className="mt-6 rounded-2xl border border-[#8dffbe]/15 bg-black/25 p-4 font-mono text-xs leading-6 text-[#c8d8cd]">
+            <div className="mt-6 rounded-xl border border-[#8dffbe]/15 bg-black/25 p-4 font-mono text-xs font-semibold leading-6 text-[#c8d8cd]">
               {proofSteps.map((step) => (
                 <div key={step}>✓ {step}</div>
               ))}
@@ -979,26 +1021,50 @@ export default function BotPulseDapp() {
           </aside>
         </section>
 
-        <footer className="mx-auto max-w-7xl px-5 pb-8 pt-10 sm:px-8">
-          <div className="rounded-[2rem] border border-white/10 bg-white/[0.055] p-5 shadow-2xl shadow-black/25 backdrop-blur-xl lg:p-8">
-            <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+        <footer className="mx-auto max-w-7xl px-5 pb-10 pt-12 sm:px-8">
+          <div className="relative overflow-hidden rounded-[1.5rem] border border-[#8dffbe]/18 bg-[#f7f1e8] text-[#07110c] shadow-[0_18px_40px_rgba(24,39,28,0.14)]">
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(141,255,190,0.24),transparent_34%),radial-gradient(circle_at_90%_15%,rgba(242,108,47,0.32),transparent_22rem)]" />
+            <div className="relative z-10 grid gap-8 p-6 lg:grid-cols-[1.05fr_0.95fr] lg:p-9">
               <div>
                 <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-2xl bg-[#8dffbe] font-black text-[#07110c]">⌁</div>
+                  <div className="flex size-12 items-center justify-center rounded-xl bg-[#07110c] text-2xl font-black text-[#8dffbe] shadow-[0_18px_38px_rgba(7,17,12,0.22)]">⌁</div>
                   <div>
-                    <p className="text-sm font-black uppercase tracking-[0.3em] text-white">BOT Pulse</p>
-                    <p className="text-sm text-[#adc7b5]">A compact BOT Chain testnet heartbeat demo.</p>
+                    <p className="text-sm type-label tracking-[0.34em] text-[#07110c]">BOT Pulse</p>
+                    <p className="text-sm font-bold text-[#516154]">BOT Chain liveness proof · testnet MVP</p>
                   </div>
                 </div>
-                <p className="mt-5 max-w-2xl text-sm leading-6 text-[#9ab0a2]">
-                  Built for the BOT Chain Builder Challenge. The demo shows a focused liveness primitive, not a production monitoring network or audited DePIN system.
+                <h2 className="mt-7 max-w-3xl text-4xl font-black leading-[0.95] tracking-[-0.025em] sm:text-5xl">
+                  A footer should close the argument, not die after four links.
+                </h2>
+                <p className="mt-5 max-w-2xl text-base font-semibold leading-7 text-[#455348]">
+                  The build is intentionally narrow: public uptime evidence, provider-gated wallet writes, a 15-minute freshness window, and explorer-verifiable BOT Chain transactions. No fake fleet, no unaudited production claims.
                 </p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <a href="/demo#interact" className="rounded-full bg-[#07110c] px-5 py-3 font-black text-white transition hover:bg-[#183523]">Open the demo page</a>
+                  <a href={explorerAddress(BOT_PULSE_CONTRACT_ADDRESS)} target="_blank" rel="noreferrer" className="rounded-full border border-[#07110c]/15 px-5 py-3 font-black text-[#07110c] transition hover:border-[#07110c]/45">Verify contract</a>
+                  <a href="#top" className="rounded-full border border-[#07110c]/15 px-5 py-3 font-black text-[#07110c] transition hover:border-[#07110c]/45">Back to top</a>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm font-black">
-                <a href={explorerAddress(BOT_PULSE_CONTRACT_ADDRESS)} target="_blank" rel="noreferrer" className="rounded-full border border-white/12 px-4 py-2 text-[#c8d8cd] hover:border-[#8dffbe]/45 hover:text-[#8dffbe]">Contract</a>
-                <a href={BOT_CHAIN_TESTNET.explorerUrl} target="_blank" rel="noreferrer" className="rounded-full border border-white/12 px-4 py-2 text-[#c8d8cd] hover:border-[#8dffbe]/45 hover:text-[#8dffbe]">Explorer</a>
-                <a href={BOT_CHAIN_TESTNET.faucetUrl} target="_blank" rel="noreferrer" className="rounded-full border border-white/12 px-4 py-2 text-[#c8d8cd] hover:border-[#8dffbe]/45 hover:text-[#8dffbe]">Faucet</a>
-                <a href="#top" className="rounded-full bg-white px-4 py-2 text-[#07110c] hover:bg-[#8dffbe]">Back to top</a>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl border border-[#07110c]/10 bg-white/60 p-5">
+                  <p className="text-xs type-label tracking-[0.24em] text-[#386948]">Builder proof</p>
+                  <div className="mt-4 space-y-3 text-sm font-bold leading-6 text-[#455348]">
+                    <p>Contract: <a href={explorerAddress(BOT_PULSE_CONTRACT_ADDRESS)} target="_blank" rel="noreferrer" className="text-[#07110c] underline decoration-[#4bd486]/50 underline-offset-4">{shortAddress(BOT_PULSE_CONTRACT_ADDRESS)}</a></p>
+                    <p>Network: BOT Chain Testnet 968</p>
+                    <p>Wallet: selected browser provider only for writes</p>
+                    <p>Reads: public RPC before connect</p>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-[#07110c]/10 bg-[#07110c] p-5 text-white shadow-2xl">
+                  <p className="text-xs type-label tracking-[0.24em] text-[#8dffbe]">Submission links</p>
+                  <div className="mt-4 grid gap-2 text-sm font-black">
+                    <a href="/demo#interact" className="rounded-full bg-white/[0.08] px-4 py-3 text-white hover:bg-white/[0.14]">Dedicated /demo route</a>
+                    <a href={BOT_CHAIN_TESTNET.explorerUrl} target="_blank" rel="noreferrer" className="rounded-full bg-white/[0.08] px-4 py-3 text-white hover:bg-white/[0.14]">BOT explorer</a>
+                    <a href={BOT_CHAIN_TESTNET.faucetUrl} target="_blank" rel="noreferrer" className="rounded-full bg-white/[0.08] px-4 py-3 text-white hover:bg-white/[0.14]">Testnet faucet</a>
+                    <a href="#evidence" className="rounded-full bg-[#8dffbe] px-4 py-3 text-[#07110c] hover:bg-white">Evidence trail</a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1007,3 +1073,9 @@ export default function BotPulseDapp() {
     </main>
   );
 }
+
+
+
+
+
+
