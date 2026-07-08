@@ -845,28 +845,31 @@ export default function BotPulseDapp() {
             </div>
           </div>
 
-          <aside className="rounded-[2rem] border border-white/10 bg-[#f7f1e8] p-5 text-[#07110c] shadow-2xl shadow-black/30">
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#d9481e]">Evidence trail</p>
-            <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Every visible status must come from a contract read or submitted tx.</h2>
+          <aside className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#0c1a12]/90 p-5 text-white shadow-2xl shadow-black/30 backdrop-blur-xl">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(242,108,47,0.16),transparent_18rem),linear-gradient(rgba(141,255,190,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(141,255,190,0.06)_1px,transparent_1px)] bg-[size:auto,38px_38px,38px_38px]" />
+            <div className="relative z-10">
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8dffbe]">Evidence trail</p>
+            <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">Every visible status must come from a contract read or submitted tx.</h2>
             {txLog.length ? (
               <ol className="mt-6 space-y-3">
                 {txLog.map((entry) => (
-                  <li key={`${entry.label}-${entry.hash}`} className="rounded-2xl bg-[#07110c]/[0.07] p-3 text-sm leading-6 text-[#334238]">
-                    <a href={explorerTx(entry.hash)} target="_blank" rel="noreferrer" className="font-black text-[#d9481e] hover:text-[#07110c]">
+                  <li key={`${entry.label}-${entry.hash}`} className="rounded-2xl border border-white/10 bg-white/[0.055] p-3 text-sm leading-6 text-[#adc7b5]">
+                    <a href={explorerTx(entry.hash)} target="_blank" rel="noreferrer" className="font-black text-[#8dffbe] hover:text-white">
                       {entry.label}: {shortAddress(entry.hash)}
                     </a>
                   </li>
                 ))}
               </ol>
             ) : (
-              <div className="mt-6 rounded-2xl bg-[#07110c]/[0.07] p-4 text-sm font-semibold leading-6 text-[#334238]">
+              <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.055] p-4 text-sm font-semibold leading-6 text-[#adc7b5]">
                 No wallet transaction has been sent in this browser session. Use the contract link to verify the deployed registry, or connect a wallet to produce a new explorer-linked transaction.
               </div>
             )}
-            <div className="mt-6 rounded-2xl border border-[#07110c]/10 bg-white/50 p-4 font-mono text-xs leading-6 text-[#334238]">
+            <div className="mt-6 rounded-2xl border border-[#8dffbe]/15 bg-black/25 p-4 font-mono text-xs leading-6 text-[#c8d8cd]">
               {proofSteps.map((step) => (
                 <div key={step}>✓ {step}</div>
               ))}
+            </div>
             </div>
           </aside>
         </section>
