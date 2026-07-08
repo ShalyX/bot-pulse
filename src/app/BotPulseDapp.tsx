@@ -521,306 +521,381 @@ export default function BotPulseDapp() {
   }
 
   return (
-    <main className="grid-paper min-h-screen overflow-hidden px-5 py-5 text-foreground sm:px-8 lg:px-10">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between rounded-full border border-black/10 bg-paper/80 px-5 py-3 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-full bg-signal text-lg font-black text-white shadow-lg shadow-orange-900/20">
-            ∿
-          </div>
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.28em] text-moss">BOT Pulse</p>
-            <p className="text-xs text-ink-soft">DePIN SLA watchtower</p>
-          </div>
-        </div>
-        <div className="hidden items-center gap-3 text-sm font-semibold text-ink-soft sm:flex">
-          <a href="#live-state" className="hover:text-foreground">Live state</a>
-          <a href="#interact" className="hover:text-foreground">Interact</a>
-          <a href="#contract" className="hover:text-foreground">Contract</a>
-        </div>
-        <button
-          onClick={connectWallet}
-          disabled={busy}
-          className="rounded-full bg-foreground px-4 py-2 text-sm font-bold text-paper transition hover:bg-signal-strong disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {account ? shortAddress(account) : busy ? "Opening Wallet…" : "Connect Wallet"}
-        </button>
-      </nav>
-
-      <section className="mx-auto grid max-w-7xl gap-8 py-12 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:py-16">
-        <div className="space-y-7">
-          <div className="inline-flex items-center gap-2 rounded-full border border-moss/20 bg-paper/80 px-4 py-2 text-sm font-bold text-moss">
-            <span className="size-2 rounded-full bg-signal"></span>
-            BOT Chain Builder Challenge · DePIN / Real World
-          </div>
-
-          <div className="space-y-5">
-            <h1 className="max-w-4xl text-5xl font-black leading-[0.95] tracking-[-0.07em] text-foreground sm:text-7xl">
-              DePIN uptime, enforced by public heartbeat proofs.
-            </h1>
-            <p className="max-w-2xl text-lg leading-8 text-ink-soft sm:text-xl">
-              BOT Pulse turns simple device check-ins into an uptime watchtower: operators commit to a heartbeat window, BOT Chain records the latest proof, and anyone can see whether a gateway is covered or stale.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[
-              ["SLA", "15 min", "freshness window"],
-              ["Live state", liveSlaState, breachEta],
-              ["Contract", shortAddress(BOT_PULSE_CONTRACT_ADDRESS), "BOT testnet · 968"],
-            ].map(([label, value, sub]) => (
-              <div key={label} className="rounded-3xl border border-black/10 bg-paper/75 p-4 soft-shadow">
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-clay">{label}</p>
-                <p className="mt-2 text-2xl font-black">{value}</p>
-                <p className="text-sm text-ink-soft">{sub}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <a href="#interact" className="rounded-full bg-signal px-6 py-3 text-center font-black text-white shadow-xl shadow-orange-900/20 transition hover:bg-signal-strong">
-              Prove uptime
-            </a>
-            <a href={explorerAddress(BOT_PULSE_CONTRACT_ADDRESS)} target="_blank" rel="noreferrer" className="rounded-full border border-black/15 bg-paper px-6 py-3 text-center font-black text-foreground transition hover:border-signal hover:text-signal-strong">
-              View contract
-            </a>
-            <a href={BOT_CHAIN_TESTNET.faucetUrl} target="_blank" rel="noreferrer" className="rounded-full border border-black/15 bg-paper px-6 py-3 text-center font-black text-foreground transition hover:border-signal hover:text-signal-strong">
-              Get test BOT
-            </a>
-            <a href={BOT_CHAIN_TESTNET.explorerUrl} target="_blank" rel="noreferrer" className="rounded-full border border-black/15 bg-paper px-6 py-3 text-center font-black text-foreground transition hover:border-signal hover:text-signal-strong">
-              Open explorer
-            </a>
-          </div>
-        </div>
-
-        <div id="live-state" className={`pulse-stage rounded-[2.5rem] border border-black/10 bg-paper/70 p-5 soft-shadow backdrop-blur ${pulseNonce ? "pulse-confirmed" : ""}`} key={pulseNonce}>
-          <div className="pulse-wave"></div>
-          <div className="pulse-wave"></div>
-          <div className="pulse-wave"></div>
-          <div className="pulse-wave"></div>
-
-          <div className="absolute left-1/2 top-12 h-60 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-signal/60 to-transparent"></div>
-          <div className="absolute left-1/2 top-28 flex -translate-x-1/2 flex-col items-center gap-5">
-            {["uptime SLA", "event log", "covered", "packet", "breach clock"].map((label) => (
-              <div key={label} className="uplink-dot rounded-full border border-black/10 bg-paper px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-moss soft-shadow">
-                {label}
-              </div>
-            ))}
-          </div>
-
-          <div className="absolute inset-x-6 bottom-6 rounded-[2rem] border border-black/10 bg-[#fff8ec]/95 p-5">
-            <div className="mx-auto mb-4 flex size-24 items-center justify-center rounded-[2rem] bg-gradient-to-br from-signal to-clay text-4xl font-black text-white shadow-xl shadow-orange-900/25">
+    <main className="min-h-screen overflow-hidden bg-[#07110c] text-[#f7f1e8]">
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_18%_8%,rgba(58,255,155,0.22),transparent_30rem),radial-gradient(circle_at_82%_12%,rgba(242,108,47,0.2),transparent_26rem),linear-gradient(180deg,#07110c_0%,#0b1810_42%,#10150f_100%)]" />
+      <div className="relative z-10">
+        <nav className="mx-auto mt-5 flex max-w-7xl items-center justify-between rounded-full border border-white/10 bg-white/[0.06] px-4 py-3 shadow-2xl shadow-black/30 backdrop-blur-xl sm:px-5">
+          <a href="#top" className="flex items-center gap-3" aria-label="BOT Pulse home">
+            <div className="relative flex size-11 items-center justify-center rounded-2xl border border-[#8dffbe]/30 bg-[#102619] text-xl font-black text-[#8dffbe] shadow-[0_0_34px_rgba(141,255,190,0.22)]">
+              <span className="absolute inset-1 rounded-xl border border-white/10" />
               ⌁
             </div>
-            <div className="text-center">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">{deviceLabel || "Gateway"}</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">
-                {device?.fresh ? "Uptime SLA covered" : device?.lastSeenAt && device.lastSeenAt > 0n ? "SLA breach visible" : "Ready to prove uptime"}
-              </h2>
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink-soft">
-                A fresh heartbeat keeps the device covered. A missed heartbeat becomes public breach evidence that operators, customers, or bounty reviewers can inspect on BOT Chain.
-              </p>
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.34em] text-white">BOT Pulse</p>
+              <p className="text-xs font-semibold text-[#adc7b5]">SLA heartbeat watchtower</p>
             </div>
-          </div>
-        </div>
-      </section>
+          </a>
 
-      <section id="interact" className="mx-auto grid max-w-7xl gap-6 pb-12 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="rounded-[2rem] border border-black/10 bg-paper/85 p-5 soft-shadow">
-          <div className="mb-5">
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">SLA proof controls</p>
-            <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Register device, then prove uptime.</h2>
-            <p className="mt-2 max-h-28 overflow-auto break-words rounded-2xl bg-paper-strong p-3 text-sm leading-6 text-ink-soft">{status}</p>
-            <div className="mt-2 flex flex-wrap gap-2 text-sm font-bold">
-              <a href={BOT_CHAIN_TESTNET.faucetUrl} target="_blank" rel="noreferrer" className="rounded-full bg-signal/15 px-3 py-2 text-signal-strong hover:bg-signal/25">
-                Faucet: get test BOT
-              </a>
-              <a href={BOT_CHAIN_TESTNET.explorerUrl} target="_blank" rel="noreferrer" className="rounded-full bg-moss/15 px-3 py-2 text-moss hover:bg-moss/25">
-                BOT explorer
-              </a>
-            </div>
-            {deviceBelongsToAnotherWallet ? (
-              <p className="mt-2 rounded-2xl bg-signal/15 p-3 text-sm font-bold text-signal-strong">
-                Seeded challenge gateway is owned by {shortAddress(device?.owner ?? "")}. Use your own device label to register and send pulses from your wallet.
-              </p>
-            ) : null}
-            {chainId && !onCorrectChain ? (
-              <p className="mt-2 rounded-2xl bg-signal/15 p-3 text-sm font-bold text-signal-strong">
-                Wrong chain detected. Switch to BOT Chain testnet chain ID 968.
-              </p>
-            ) : null}
+          <div className="hidden items-center gap-5 text-sm font-bold text-[#adc7b5] md:flex">
+            <a href="#product" className="transition hover:text-white">Product</a>
+            <a href="#live-state" className="transition hover:text-white">Live proof</a>
+            <a href="#interact" className="transition hover:text-white">Try it</a>
+            <a href="#evidence" className="transition hover:text-white">Evidence</a>
           </div>
 
-          <div className="grid gap-4">
-            <label className="grid gap-2 text-sm font-bold text-ink-soft">
-              Device label
-              <input value={deviceLabel} onChange={(event) => { setDeviceLabel(event.target.value); setDevice(null); }} className="rounded-2xl border border-black/10 bg-white/70 px-4 py-3 text-foreground outline-none focus:border-signal" />
-            </label>
-            <label className="grid gap-2 text-sm font-bold text-ink-soft">
-              Metadata URI
-              <input value={metadataURI} onChange={(event) => setMetadataURI(event.target.value)} className="rounded-2xl border border-black/10 bg-white/70 px-4 py-3 text-foreground outline-none focus:border-signal" />
-            </label>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="grid gap-2 text-sm font-bold text-ink-soft">
-                Metric type
-                <select value={metricType} onChange={(event) => setMetricType(event.target.value)} className="rounded-2xl border border-black/10 bg-white/70 px-4 py-3 text-foreground outline-none focus:border-signal">
-                  <option value="latency_ms">latency_ms</option>
-                  <option value="temperature_c">temperature_c</option>
-                  <option value="uptime_pct">uptime_pct</option>
-                  <option value="watt_hours">watt_hours</option>
-                  <option value="pm25">pm25</option>
-                </select>
-              </label>
-              <label className="grid gap-2 text-sm font-bold text-ink-soft">
-                Metric value
-                <input value={metricValue} onChange={(event) => setMetricValue(event.target.value.replace(/[^0-9-]/g, ""))} className="rounded-2xl border border-black/10 bg-white/70 px-4 py-3 text-foreground outline-none focus:border-signal" />
-              </label>
+          <button
+            onClick={connectWallet}
+            disabled={busy}
+            className="rounded-full border border-[#8dffbe]/30 bg-[#8dffbe] px-4 py-2 text-sm font-black text-[#07110c] shadow-[0_0_30px_rgba(141,255,190,0.22)] transition hover:scale-[1.02] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {account ? shortAddress(account) : busy ? "Opening…" : "Connect"}
+          </button>
+        </nav>
+
+        <section id="top" className="mx-auto grid max-w-7xl gap-8 px-5 pb-10 pt-14 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:pb-16 lg:pt-20">
+          <div className="space-y-8">
+            <div className="inline-flex items-center gap-3 rounded-full border border-[#8dffbe]/20 bg-[#8dffbe]/10 px-4 py-2 text-sm font-black uppercase tracking-[0.2em] text-[#8dffbe]">
+              <span className="size-2 rounded-full bg-[#8dffbe] shadow-[0_0_18px_rgba(141,255,190,0.8)]" />
+              BOT Chain testnet · DePIN liveness
             </div>
-            {!account ? (
-              <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                <button onClick={connectWallet} disabled={busy} className="rounded-2xl bg-foreground px-5 py-3 font-black text-paper transition hover:bg-moss disabled:cursor-not-allowed disabled:opacity-50">
-                  Connect wallet to register or send heartbeat
-                </button>
-                <button onClick={refreshDevice} disabled={busy} className="rounded-2xl border border-black/15 bg-paper px-5 py-3 font-black text-foreground transition hover:border-moss disabled:cursor-not-allowed disabled:opacity-50">
-                  Refresh State
-                </button>
+
+            <div className="space-y-5">
+              <h1 className="max-w-5xl text-6xl font-black leading-[0.88] tracking-[-0.08em] text-white sm:text-7xl lg:text-8xl">
+                Public uptime proof for small DePIN fleets.
+              </h1>
+              <p className="max-w-2xl text-lg leading-8 text-[#c8d8cd] sm:text-xl">
+                BOT Pulse turns gateway check-ins into a visible SLA layer: a device registers, submits packet hashes to BOT Chain, and the page reads the contract to show whether the latest heartbeat is still covered.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                ["Window", "15 min", "freshness SLA"],
+                ["Now", liveSlaState, breachEta],
+                ["Network", "BOT", "testnet chain 968"],
+              ].map(([label, value, sub]) => (
+                <div key={label} className="rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-4 shadow-2xl shadow-black/20 backdrop-blur">
+                  <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8dffbe]">{label}</p>
+                  <p className="mt-2 text-2xl font-black text-white">{value}</p>
+                  <p className="text-sm font-semibold text-[#9ab0a2]">{sub}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <a href="#interact" className="rounded-full bg-[#f26c2f] px-6 py-3 text-center font-black text-white shadow-[0_16px_40px_rgba(242,108,47,0.28)] transition hover:scale-[1.02] hover:bg-[#ff8a4f]">
+                Send a heartbeat
+              </a>
+              <a href={explorerAddress(BOT_PULSE_CONTRACT_ADDRESS)} target="_blank" rel="noreferrer" className="rounded-full border border-white/12 bg-white/[0.07] px-6 py-3 text-center font-black text-white transition hover:border-[#8dffbe]/50 hover:text-[#8dffbe]">
+                Verify contract
+              </a>
+              <a href="#product" className="rounded-full border border-white/12 bg-transparent px-6 py-3 text-center font-black text-[#c8d8cd] transition hover:border-white/30 hover:text-white">
+                See landing story
+              </a>
+            </div>
+          </div>
+
+          <div id="live-state" className={`pulse-stage relative min-h-[620px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#0b1c12]/[0.88] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.45)] backdrop-blur-xl ${pulseNonce ? "pulse-confirmed" : ""}`} key={pulseNonce}>
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(141,255,190,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(141,255,190,0.08)_1px,transparent_1px)] bg-[size:42px_42px]" />
+            <div className="pulse-wave"></div>
+            <div className="pulse-wave"></div>
+            <div className="pulse-wave"></div>
+            <div className="pulse-wave"></div>
+
+            <div className="relative z-10 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.26em] text-[#8dffbe]">Live contract read</p>
+                <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] text-white">Gateway liveness panel</h2>
               </div>
+              <span className={`rounded-full px-4 py-2 text-sm font-black ${device?.fresh ? "bg-[#8dffbe] text-[#07110c]" : "bg-[#f26c2f] text-white"}`}>
+                {publicLoading ? "syncing" : device?.fresh ? "covered" : "stale"}
+              </span>
+            </div>
+
+            <div className="absolute left-1/2 top-32 z-10 h-64 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-[#8dffbe]/70 to-transparent"></div>
+            <div className="absolute left-1/2 top-40 z-10 flex -translate-x-1/2 flex-col items-center gap-5">
+              {["packet hash", "BOT tx", "freshness read", "breach clock"].map((label) => (
+                <div key={label} className="uplink-dot rounded-full border border-[#8dffbe]/25 bg-[#0f2518]/95 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-[#8dffbe] shadow-[0_0_24px_rgba(141,255,190,0.16)]">
+                  {label}
+                </div>
+              ))}
+            </div>
+
+            <div className="absolute inset-x-5 bottom-5 z-10 rounded-[2rem] border border-white/10 bg-[#08120d]/95 p-5 shadow-2xl shadow-black/40">
+              <div className="mb-4 grid gap-3 sm:grid-cols-3">
+                {[
+                  ["State", liveSlaState],
+                  ["Clock", slaClock],
+                  ["Proofs", device ? device.heartbeatCount.toString() : "—"],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-2xl border border-white/8 bg-white/[0.05] p-3">
+                    <p className="text-xs font-black uppercase tracking-[0.22em] text-[#adc7b5]">{label}</p>
+                    <p className="mt-1 break-words text-lg font-black text-white">{value}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#f26c2f]">{deviceLabel || "Gateway"}</p>
+              <h2 className="mt-2 text-3xl font-black tracking-[-0.05em] text-white">
+                {device?.fresh ? "Heartbeat inside the SLA window." : device?.lastSeenAt && device.lastSeenAt > 0n ? "Missed heartbeat is visible." : "Ready for first uptime proof."}
+              </h2>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-[#adc7b5]">
+                No fake fleet rows: the dashboard renders devices read from the deployed registry, then links users back to the BOT Chain explorer for verification.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="product" className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:py-12">
+          <div className="rounded-[2.25rem] border border-white/10 bg-white/[0.055] p-5 shadow-2xl shadow-black/25 backdrop-blur-xl lg:p-8">
+            <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.28em] text-[#8dffbe]">Product story</p>
+                <h2 className="mt-3 text-4xl font-black tracking-[-0.06em] text-white sm:text-5xl">From “device pinged” to proof customers can inspect.</h2>
+              </div>
+              <p className="text-base leading-8 text-[#c8d8cd]">
+                BOT Pulse is intentionally narrow: it does not pretend to be production DePIN infrastructure. It demonstrates a useful primitive for operators, reviewers, and customers — public liveness evidence with a short breach clock and explorer-verifiable transaction trail.
+              </p>
+            </div>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {[
+                ["01", "Register", "A wallet registers a gateway label and metadata URI on the deployed BOT Chain registry."],
+                ["02", "Commit", "Each heartbeat stores the latest packet hash and metric value without exposing raw device data."],
+                ["03", "Inspect", "The frontend reads the contract, calculates freshness, and sends users to explorer evidence."],
+              ].map(([number, title, body]) => (
+                <article key={title} className="rounded-[1.75rem] border border-white/10 bg-[#09150f] p-5">
+                  <p className="text-sm font-black text-[#f26c2f]">{number}</p>
+                  <h3 className="mt-4 text-2xl font-black tracking-[-0.04em] text-white">{title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[#adc7b5]">{body}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="interact" className="mx-auto grid max-w-7xl gap-6 px-5 py-8 sm:px-8 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="rounded-[2rem] border border-white/10 bg-[#0c1a12]/90 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
+            <div className="mb-5">
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8dffbe]">SLA proof controls</p>
+              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">Register a device, then prove uptime.</h2>
+              <p className="mt-2 max-h-28 overflow-auto break-words rounded-2xl border border-white/8 bg-white/[0.055] p-3 text-sm leading-6 text-[#c8d8cd]">{status}</p>
+              <div className="mt-3 flex flex-wrap gap-2 text-sm font-bold">
+                <a href={BOT_CHAIN_TESTNET.faucetUrl} target="_blank" rel="noreferrer" className="rounded-full bg-[#f26c2f]/15 px-3 py-2 text-[#ffb089] hover:bg-[#f26c2f]/25">
+                  Faucet: get test BOT
+                </a>
+                <a href={BOT_CHAIN_TESTNET.explorerUrl} target="_blank" rel="noreferrer" className="rounded-full bg-[#8dffbe]/12 px-3 py-2 text-[#8dffbe] hover:bg-[#8dffbe]/20">
+                  BOT explorer
+                </a>
+              </div>
+              {deviceBelongsToAnotherWallet ? (
+                <p className="mt-3 rounded-2xl bg-[#f26c2f]/15 p-3 text-sm font-bold text-[#ffb089]">
+                  Seeded challenge gateway is owned by {shortAddress(device?.owner ?? "")}. Use your own device label to register and send pulses from your wallet.
+                </p>
+              ) : null}
+              {chainId && !onCorrectChain ? (
+                <p className="mt-3 rounded-2xl bg-[#f26c2f]/15 p-3 text-sm font-bold text-[#ffb089]">
+                  Wrong chain detected. Switch to BOT Chain testnet chain ID 968.
+                </p>
+              ) : null}
+            </div>
+
+            <div className="grid gap-4">
+              <label className="grid gap-2 text-sm font-bold text-[#adc7b5]">
+                Device label
+                <input value={deviceLabel} onChange={(event) => { setDeviceLabel(event.target.value); setDevice(null); }} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe]" />
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-[#adc7b5]">
+                Metadata URI
+                <input value={metadataURI} onChange={(event) => setMetadataURI(event.target.value)} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe]" />
+              </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-2 text-sm font-bold text-[#adc7b5]">
+                  Metric type
+                  <select value={metricType} onChange={(event) => setMetricType(event.target.value)} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe]">
+                    <option value="latency_ms">latency_ms</option>
+                    <option value="temperature_c">temperature_c</option>
+                    <option value="uptime_pct">uptime_pct</option>
+                    <option value="watt_hours">watt_hours</option>
+                    <option value="pm25">pm25</option>
+                  </select>
+                </label>
+                <label className="grid gap-2 text-sm font-bold text-[#adc7b5]">
+                  Metric value
+                  <input value={metricValue} onChange={(event) => setMetricValue(event.target.value.replace(/[^0-9-]/g, ""))} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe]" />
+                </label>
+              </div>
+              {!account ? (
+                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                  <button onClick={connectWallet} disabled={busy} className="rounded-2xl bg-[#8dffbe] px-5 py-3 font-black text-[#07110c] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50">
+                    Connect wallet to register or send heartbeat
+                  </button>
+                  <button onClick={refreshDevice} disabled={busy} className="rounded-2xl border border-white/12 bg-white/[0.06] px-5 py-3 font-black text-white transition hover:border-[#8dffbe]/45 disabled:cursor-not-allowed disabled:opacity-50">
+                    Refresh state
+                  </button>
+                </div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <button onClick={registerDevice} disabled={busy || Boolean(device?.active && isDeviceOwner)} className="rounded-2xl bg-white px-5 py-3 font-black text-[#07110c] transition hover:bg-[#8dffbe] disabled:cursor-not-allowed disabled:opacity-50">
+                    {registerButtonLabel}
+                  </button>
+                  <button onClick={sendHeartbeat} disabled={busy || !device?.active || !isDeviceOwner} className="rounded-2xl bg-[#f26c2f] px-5 py-3 font-black text-white transition hover:bg-[#ff8a4f] disabled:cursor-not-allowed disabled:opacity-50">
+                    {heartbeatButtonLabel}
+                  </button>
+                  <button onClick={refreshDevice} disabled={busy} className="rounded-2xl border border-white/12 bg-white/[0.06] px-5 py-3 font-black text-white transition hover:border-[#8dffbe]/45 disabled:cursor-not-allowed disabled:opacity-50">
+                    Refresh state
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-white/10 bg-[#0c1a12]/90 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl" id="contract">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8dffbe]">On-chain SLA state</p>
+                <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">Freshness becomes accountability.</h2>
+              </div>
+              <span className={`rounded-full px-4 py-2 text-sm font-black ${device?.fresh ? "bg-[#8dffbe] text-[#07110c]" : "bg-[#f26c2f] text-white"}`}>
+                {publicLoading ? "loading" : device?.fresh ? "fresh" : "SLA breach"}
+              </span>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[
+                ["SLA state", liveSlaState],
+                ["breach clock", breachEta],
+                ["proof age", slaClock],
+                ["owner", device ? shortAddress(device.owner) : "—"],
+                ["heartbeat count", device ? device.heartbeatCount.toString() : "—"],
+                ["latest metric", formatMetricLabel(device?.latestMetricType || "")],
+                ["latest value", device ? device.latestValue.toString() : "—"],
+                ["last seen", device ? formatTimestamp(device.lastSeenAt) : "—"],
+                ["active", device ? (device.active ? "yes" : "no") : "—"],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-2xl border border-white/8 bg-white/[0.055] p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-[#adc7b5]">{label}</p>
+                  <p className="mt-2 break-words text-lg font-black text-white">{value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-[#8dffbe]/15 bg-black/30 p-4 font-mono text-xs leading-6 text-[#adc7b5]">
+              deviceId: {deviceId}<br />
+              latestHash: {device?.latestDataHash || "—"}
+            </div>
+          </div>
+        </section>
+
+        <section id="evidence" className="mx-auto grid max-w-7xl gap-6 px-5 py-8 sm:px-8 lg:grid-cols-[1.2fr_.8fr]">
+          <div className="rounded-[2rem] border border-white/10 bg-[#0c1a12]/90 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#8dffbe]">Live registry</p>
+                <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">Only devices read from the contract.</h2>
+              </div>
+              <div className="rounded-full bg-[#8dffbe] px-4 py-2 text-sm font-black text-[#07110c]">
+                {publicLoading ? "reading RPC" : publicError ? "RPC unavailable" : `${registryDevices.length} on-chain`}
+              </div>
+            </div>
+
+            {publicError ? (
+              <p className="rounded-2xl bg-[#f26c2f]/15 p-4 text-sm font-bold leading-6 text-[#ffb089]">{publicError}</p>
+            ) : null}
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {registryDevices.map((entry, index) => {
+                const state = slaState(entry.snapshot);
+                return (
+                  <article key={entry.id} className="rounded-[1.5rem] border border-white/10 bg-white/[0.055] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-black capitalize text-white">{metadataName(entry.snapshot.metadataURI, entry.id)}</p>
+                        <p className="mt-1 break-all font-mono text-xs text-[#8ea497]">{entry.id}</p>
+                      </div>
+                      <span className={`rounded-full px-3 py-1 text-xs font-black uppercase ${entry.snapshot.fresh ? "bg-[#8dffbe]/18 text-[#8dffbe]" : "bg-[#f26c2f]/18 text-[#ffb089]"}`}>
+                        {state}
+                      </span>
+                    </div>
+                    <div className="my-5 grid gap-3 rounded-2xl border border-white/8 bg-black/20 p-4 sm:grid-cols-3">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-[0.2em] text-[#adc7b5]">metric</p>
+                        <p className="mt-1 text-base font-black leading-tight text-white">{formatMetricLabel(entry.snapshot.latestMetricType)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-[0.2em] text-[#adc7b5]">value</p>
+                        <p className="mt-1 text-lg font-black text-white">{entry.snapshot.latestValue.toString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-[0.2em] text-[#adc7b5]">proofs</p>
+                        <p className="mt-1 text-lg font-black text-white">{entry.snapshot.heartbeatCount.toString()}</p>
+                      </div>
+                    </div>
+                    <div className="grid gap-2 text-xs font-bold text-[#adc7b5] sm:grid-cols-2">
+                      <span>Owner: {shortAddress(entry.snapshot.owner)}</span>
+                      <span>{formatSlaClock(entry.snapshot.lastSeenAt)}</span>
+                    </div>
+                    {index === 0 ? (
+                      <p className="mt-3 rounded-2xl bg-[#8dffbe]/12 p-3 text-xs font-bold leading-5 text-[#8dffbe]">
+                        Seeded challenge gateway. More rows appear only after wallets register more devices on-chain.
+                      </p>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+
+          <aside className="rounded-[2rem] border border-white/10 bg-[#f7f1e8] p-5 text-[#07110c] shadow-2xl shadow-black/30">
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#d9481e]">Evidence trail</p>
+            <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Every visible status must come from a contract read or submitted tx.</h2>
+            {txLog.length ? (
+              <ol className="mt-6 space-y-3">
+                {txLog.map((entry) => (
+                  <li key={`${entry.label}-${entry.hash}`} className="rounded-2xl bg-[#07110c]/[0.07] p-3 text-sm leading-6 text-[#334238]">
+                    <a href={explorerTx(entry.hash)} target="_blank" rel="noreferrer" className="font-black text-[#d9481e] hover:text-[#07110c]">
+                      {entry.label}: {shortAddress(entry.hash)}
+                    </a>
+                  </li>
+                ))}
+              </ol>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-3">
-                <button onClick={registerDevice} disabled={busy || Boolean(device?.active && isDeviceOwner)} className="rounded-2xl bg-foreground px-5 py-3 font-black text-paper transition hover:bg-moss disabled:cursor-not-allowed disabled:opacity-50">
-                  {registerButtonLabel}
-                </button>
-                <button onClick={sendHeartbeat} disabled={busy || !device?.active || !isDeviceOwner} className="rounded-2xl bg-signal px-5 py-3 font-black text-white transition hover:bg-signal-strong disabled:cursor-not-allowed disabled:opacity-50">
-                  {heartbeatButtonLabel}
-                </button>
-                <button onClick={refreshDevice} disabled={busy} className="rounded-2xl border border-black/15 bg-paper px-5 py-3 font-black text-foreground transition hover:border-moss disabled:cursor-not-allowed disabled:opacity-50">
-                  Refresh State
-                </button>
+              <div className="mt-6 rounded-2xl bg-[#07110c]/[0.07] p-4 text-sm font-semibold leading-6 text-[#334238]">
+                No wallet transaction has been sent in this browser session. Use the contract link to verify the deployed registry, or connect a wallet to produce a new explorer-linked transaction.
               </div>
             )}
-          </div>
-        </div>
-
-        <div className="rounded-[2rem] border border-black/10 bg-paper/85 p-5 soft-shadow" id="contract">
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">On-chain SLA state</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Freshness becomes accountability</h2>
-            </div>
-            <span className={`rounded-full px-4 py-2 text-sm font-black text-white ${device?.fresh ? "bg-moss" : "bg-clay"}`}>
-              {publicLoading ? "loading" : device?.fresh ? "fresh" : "SLA breach"}
-            </span>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            {[
-              ["SLA state", liveSlaState],
-              ["breach clock", breachEta],
-              ["proof age", slaClock],
-              ["owner", device ? shortAddress(device.owner) : "—"],
-              ["heartbeat count", device ? device.heartbeatCount.toString() : "—"],
-              ["latest metric", formatMetricLabel(device?.latestMetricType || "")],
-              ["latest value", device ? device.latestValue.toString() : "—"],
-              ["last seen", device ? formatTimestamp(device.lastSeenAt) : "—"],
-              ["active", device ? (device.active ? "yes" : "no") : "—"],
-            ].map(([label, value]) => (
-              <div key={label} className="rounded-2xl bg-paper-strong p-4">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-clay">{label}</p>
-                <p className="mt-2 break-words text-lg font-black">{value}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-4 rounded-2xl bg-foreground p-4 font-mono text-xs leading-6 text-paper/80">
-            deviceId: {deviceId}<br />
-            latestHash: {device?.latestDataHash || "—"}
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto grid max-w-7xl gap-6 pb-12 lg:grid-cols-[1.2fr_.8fr]">
-        <div className="rounded-[2rem] border border-black/10 bg-paper/85 p-5 soft-shadow">
-          <div className="mb-5 flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">Live registry</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Only devices read from the contract.</h2>
-            </div>
-            <div className="rounded-full bg-moss px-4 py-2 text-sm font-black text-white">
-              {publicLoading ? "reading RPC" : publicError ? "RPC unavailable" : `${registryDevices.length} on-chain`}
-            </div>
-          </div>
-
-          {publicError ? (
-            <p className="rounded-2xl bg-signal/15 p-4 text-sm font-bold leading-6 text-signal-strong">{publicError}</p>
-          ) : null}
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {registryDevices.map((entry, index) => {
-              const state = slaState(entry.snapshot);
-              return (
-                <article key={entry.id} className="stamped rounded-[1.5rem] bg-paper-strong p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-black capitalize">{metadataName(entry.snapshot.metadataURI, entry.id)}</p>
-                      <p className="mt-1 break-all font-mono text-xs text-ink-soft">{entry.id}</p>
-                    </div>
-                    <span className={`rounded-full px-3 py-1 text-xs font-black uppercase ${entry.snapshot.fresh ? "bg-leaf/25 text-moss" : "bg-signal/20 text-signal-strong"}`}>
-                      {state}
-                    </span>
-                  </div>
-                  <div className="my-5 grid gap-3 rounded-2xl bg-paper p-4 sm:grid-cols-3">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-[0.2em] text-clay">metric</p>
-                      <p className="mt-1 text-base font-black leading-tight">{formatMetricLabel(entry.snapshot.latestMetricType)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-[0.2em] text-clay">value</p>
-                      <p className="mt-1 text-lg font-black">{entry.snapshot.latestValue.toString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-[0.2em] text-clay">proofs</p>
-                      <p className="mt-1 text-lg font-black">{entry.snapshot.heartbeatCount.toString()}</p>
-                    </div>
-                  </div>
-                  <div className="grid gap-2 text-xs font-bold text-ink-soft sm:grid-cols-2">
-                    <span>Owner: {shortAddress(entry.snapshot.owner)}</span>
-                    <span>{formatSlaClock(entry.snapshot.lastSeenAt)}</span>
-                  </div>
-                  {index === 0 ? (
-                    <p className="mt-3 rounded-2xl bg-leaf/20 p-3 text-xs font-bold leading-5 text-moss">
-                      This is the seeded challenge gateway. Other rows appear only after wallets register more devices on-chain.
-                    </p>
-                  ) : null}
-                </article>
-              );
-            })}
-          </div>
-        </div>
-
-        <aside className="rounded-[2rem] border border-black/10 bg-foreground p-5 text-paper soft-shadow">
-          <p className="text-xs font-black uppercase tracking-[0.24em] text-sky">Evidence trail</p>
-          <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Every visible status must come from a contract read or a submitted tx.</h2>
-          {txLog.length ? (
-            <ol className="mt-6 space-y-3">
-              {txLog.map((entry) => (
-                <li key={`${entry.label}-${entry.hash}`} className="rounded-2xl bg-white/8 p-3 text-sm leading-6 text-paper/80">
-                  <a href={explorerTx(entry.hash)} target="_blank" rel="noreferrer" className="font-bold text-sky hover:text-white">
-                    {entry.label}: {shortAddress(entry.hash)}
-                  </a>
-                </li>
+            <div className="mt-6 rounded-2xl border border-[#07110c]/10 bg-white/50 p-4 font-mono text-xs leading-6 text-[#334238]">
+              {proofSteps.map((step) => (
+                <div key={step}>✓ {step}</div>
               ))}
-            </ol>
-          ) : (
-            <div className="mt-6 rounded-2xl bg-white/8 p-4 text-sm leading-6 text-paper/80">
-              No wallet transaction has been sent in this browser session. Use the contract link above to verify the deployed registry, or connect a wallet to register a device and produce a new explorer-linked transaction here.
             </div>
-          )}
-          <div className="mt-6 rounded-2xl border border-white/10 bg-white/8 p-4 font-mono text-xs leading-6 text-paper/75">
-            {proofSteps.map((step) => (
-              <div key={step}>✓ {step}</div>
-            ))}
+          </aside>
+        </section>
+
+        <footer className="mx-auto max-w-7xl px-5 pb-8 pt-10 sm:px-8">
+          <div className="rounded-[2rem] border border-white/10 bg-white/[0.055] p-5 shadow-2xl shadow-black/25 backdrop-blur-xl lg:p-8">
+            <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+              <div>
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 items-center justify-center rounded-2xl bg-[#8dffbe] font-black text-[#07110c]">⌁</div>
+                  <div>
+                    <p className="text-sm font-black uppercase tracking-[0.3em] text-white">BOT Pulse</p>
+                    <p className="text-sm text-[#adc7b5]">A compact BOT Chain testnet heartbeat demo.</p>
+                  </div>
+                </div>
+                <p className="mt-5 max-w-2xl text-sm leading-6 text-[#9ab0a2]">
+                  Built for the BOT Chain Builder Challenge. The demo shows a focused liveness primitive, not a production monitoring network or audited DePIN system.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 text-sm font-black">
+                <a href={explorerAddress(BOT_PULSE_CONTRACT_ADDRESS)} target="_blank" rel="noreferrer" className="rounded-full border border-white/12 px-4 py-2 text-[#c8d8cd] hover:border-[#8dffbe]/45 hover:text-[#8dffbe]">Contract</a>
+                <a href={BOT_CHAIN_TESTNET.explorerUrl} target="_blank" rel="noreferrer" className="rounded-full border border-white/12 px-4 py-2 text-[#c8d8cd] hover:border-[#8dffbe]/45 hover:text-[#8dffbe]">Explorer</a>
+                <a href={BOT_CHAIN_TESTNET.faucetUrl} target="_blank" rel="noreferrer" className="rounded-full border border-white/12 px-4 py-2 text-[#c8d8cd] hover:border-[#8dffbe]/45 hover:text-[#8dffbe]">Faucet</a>
+                <a href="#top" className="rounded-full bg-white px-4 py-2 text-[#07110c] hover:bg-[#8dffbe]">Back to top</a>
+              </div>
+            </div>
           </div>
-        </aside>
-      </section>
+        </footer>
+      </div>
     </main>
   );
 }
