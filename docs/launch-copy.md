@@ -38,7 +38,7 @@ This is intentionally a testnet MVP: simulated devices, on-chain freshness state
 Live app: https://bot-pulse-virid.vercel.app
 GitHub: https://github.com/ShalyX/bot-pulse
 Contract: https://scan.bohr.life/address/0x588eb96429A3c22f22848185F2b5FfD08AdfD8Ae
-Latest heartbeat: https://scan.bohr.life/tx/0x42875399514ef5454d558d05e5fdfb30dc6be69d51f78da6a83816e8f74ad1bd
+Latest heartbeat: https://scan.bohr.life/tx/0x0fb8d8dade9fa6cf87513227602a43e525dfa614b54e7c45d60ed872e8899436
 
 ## Product one-liner
 
@@ -46,7 +46,7 @@ BOT Pulse anchors DePIN gateway heartbeat hashes to BOT Chain testnet and displa
 
 ## Submission blurb
 
-BOT Pulse is a DePIN / Real World demo for BOT Chain Builder Challenge. It implements a deployed EVM heartbeat registry where simulated device gateways register IDs and submit packet hashes as heartbeat transactions. The app reads the deployed BOT Chain testnet contract through public RPC and displays freshness, latest metric, heartbeat count, owner, and transaction evidence. The prototype demonstrates a practical path for real-world sensors, gateways, and data relays to publish low-cost, explorer-verifiable liveness signals while keeping raw device data off-chain.
+BOT Pulse is a DePIN / Real World demo for BOT Chain Builder Challenge. It implements a deployed EVM heartbeat registry where device gateways register IDs and submit packet hashes as heartbeat transactions. The app reads the deployed BOT Chain testnet contract through public RPC and displays freshness, latest metric, heartbeat count, owner, and transaction evidence. The prototype demonstrates a practical path for real-world sensors, gateways, and data relays to publish low-cost, explorer-verifiable liveness signals while keeping raw device data off-chain.
 
 ## Demo video narration script
 
@@ -69,4 +69,4 @@ BOT Pulse: device liveness, anchored on BOT Chain.
 - Start on the hero and show `Heartbeat uplink confirmed`.
 - Scroll to the live contract state and show `fresh`, heartbeat count, latest metric, latest value, and latest hash.
 - Open the heartbeat explorer link.
-- Mention limitations plainly: simulated device agents, testnet contract, raw device data off-chain.
+- Mention limitations plainly: testnet contract, seeded challenge gateway, raw device data off-chain.

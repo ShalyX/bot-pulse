@@ -33,6 +33,12 @@ type TxLog = {
   hash: string;
 };
 
+type RegistryDevice = {
+  id: string;
+  snapshot: DeviceSnapshot;
+  fresh: boolean;
+};
+
 declare global {
   interface Window {
     ethereum?: Eip1193Provider;
@@ -42,41 +48,11 @@ declare global {
 const initialDeviceId = "gateway-lagos-01";
 const initialMetadata = "ipfs://bot-pulse/gateway-lagos-01.json";
 
-const slaDevices = [
-  {
-    id: "LG-GW-01",
-    name: "Lagos Gateway",
-    metric: "latency_ms",
-    value: "42",
-    status: "covered",
-    region: "West Africa",
-    window: "15 min SLA",
-  },
-  {
-    id: "ACC-SOLAR-04",
-    name: "Solar Meter",
-    metric: "watt_hours",
-    value: "812",
-    status: "ready",
-    region: "Accra",
-    window: "awaiting tx",
-  },
-  {
-    id: "NBI-AIR-02",
-    name: "Air Sensor",
-    metric: "pm25",
-    value: "18",
-    status: "at risk",
-    region: "Nairobi",
-    window: "breach watch",
-  },
-];
-
 const proofSteps = [
-  "Operator commits an uptime window for a device",
-  "Gateway hashes the latest service packet off-chain",
-  "Heartbeat tx anchors liveness evidence on BOT Chain",
-  "Dashboard turns the contract state into SLA status",
+  "Register a device ID from an EVM wallet",
+  "Hash the latest service packet off-chain",
+  "Submit the packet hash as a BOT Chain heartbeat transaction",
+  "Read the contract to show freshness, proof age, and owner",
 ];
 
 function shortAddress(address: string) {
@@ -96,6 +72,15 @@ function formatTimestamp(value: bigint) {
   return new Date(Number(value) * 1000).toLocaleString();
 }
 
+function formatMetricLabel(value: string) {
+  if (value === "latency_ms") return "Latency (ms)";
+  if (value === "temperature_c") return "Temperature (C)";
+  if (value === "uptime_pct") return "Uptime (%)";
+  if (value === "watt_hours") return "Watt hours";
+  if (value === "pm25") return "PM2.5";
+  return value ? value.replace(/_/g, " ") : "none";
+}
+
 function minutesSince(value: bigint) {
   if (value === 0n) return null;
   return Math.max(0, Math.floor((Date.now() - Number(value) * 1000) / 60000));
@@ -113,9 +98,52 @@ function formatBreachEta(value: bigint) {
   const minutes = minutesSince(value);
   if (minutes === null) return "needs first heartbeat";
   const remaining = 15 - minutes;
-  if (remaining <= 0) return `${Math.abs(remaining)} min over SLA`;
+  if (remaining <= 0) return "SLA window expired";
   if (remaining === 1) return "1 min until SLA breach";
   return `${remaining} min until SLA breach`;
+}
+
+function metadataName(metadataURI: string, id: string) {
+  const cleaned = metadataURI.split("/").pop()?.replace(/\.json$/i, "").replace(/-/g, " ").trim();
+  if (cleaned) return cleaned;
+  return `device ${shortAddress(id)}`;
+}
+
+function slaState(snapshot: DeviceSnapshot | null | undefined, loading = false) {
+  if (loading) return "Loading BOT Chain state";
+  if (!snapshot) return "No device loaded";
+  if (!snapshot.active) return "Device inactive";
+  if (snapshot.fresh) return "SLA covered";
+  return snapshot.lastSeenAt > 0n ? "SLA breach" : "No heartbeat yet";
+}
+
+async function readDeviceSnapshot(contract: Contract, id: string): Promise<DeviceSnapshot> {
+  const [rawDevice, fresh] = await Promise.all([
+    contract.getDevice(id),
+    contract.isFresh(id) as Promise<boolean>,
+  ]);
+
+  return {
+    owner: rawDevice.owner as string,
+    metadataURI: rawDevice.metadataURI as string,
+    registeredAt: rawDevice.registeredAt as bigint,
+    lastSeenAt: rawDevice.lastSeenAt as bigint,
+    heartbeatCount: rawDevice.heartbeatCount as bigint,
+    latestDataHash: rawDevice.latestDataHash as string,
+    latestMetricType: rawDevice.latestMetricType as string,
+    latestValue: rawDevice.latestValue as bigint,
+    active: rawDevice.active as boolean,
+    fresh,
+  };
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => reject(new Error(message)), ms);
+    }),
+  ]);
 }
 
 function readableWalletError(error: unknown, fallback: string) {
@@ -188,8 +216,11 @@ export default function BotPulseDapp() {
   const [metricType, setMetricType] = useState("latency_ms");
   const [metricValue, setMetricValue] = useState("42");
   const [device, setDevice] = useState<DeviceSnapshot | null>(null);
+  const [registryDevices, setRegistryDevices] = useState<RegistryDevice[]>([]);
+  const [publicLoading, setPublicLoading] = useState(true);
+  const [publicError, setPublicError] = useState("");
   const [txLog, setTxLog] = useState<TxLog[]>([]);
-  const [status, setStatus] = useState("Connect a wallet to interact with the deployed BOT Chain contract.");
+  const [status, setStatus] = useState("Loading BOT Chain contract state...");
   const [busy, setBusy] = useState(false);
   const [pulseNonce, setPulseNonce] = useState(0);
 
@@ -199,44 +230,65 @@ export default function BotPulseDapp() {
   const deviceOwner = device?.owner.toLowerCase() ?? "";
   const isDeviceOwner = Boolean(connectedAccount && deviceOwner && connectedAccount === deviceOwner);
   const deviceBelongsToAnotherWallet = Boolean(account && device?.active && deviceOwner && !isDeviceOwner);
-  const slaClock = device ? formatSlaClock(device.lastSeenAt) : "waiting for contract read";
-  const breachEta = device ? formatBreachEta(device.lastSeenAt) : "waiting for contract read";
-  const liveSlaState = device?.fresh ? "SLA covered" : device?.lastSeenAt && device.lastSeenAt > 0n ? "SLA breach" : "No proof yet";
+  const slaClock = device ? formatSlaClock(device.lastSeenAt) : publicLoading ? "checking RPC" : "no heartbeat yet";
+  const breachEta = device ? formatBreachEta(device.lastSeenAt) : publicLoading ? "checking RPC" : "register first";
+  const liveSlaState = slaState(device, publicLoading);
+  const registerButtonLabel = !account
+    ? "Connect wallet first"
+    : deviceBelongsToAnotherWallet
+      ? "Use My Device"
+      : device?.active && isDeviceOwner
+        ? "Registered"
+        : "Register Device";
+  const heartbeatButtonLabel = !account
+    ? "Connect wallet first"
+    : !device?.active
+      ? "Register device first"
+      : !isDeviceOwner
+        ? "Use your own device"
+        : "Prove Uptime";
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadPublicDeviceState() {
+      setPublicLoading(true);
+      setPublicError("");
       try {
         const contract = new Contract(
           BOT_PULSE_CONTRACT_ADDRESS,
           BOT_PULSE_ABI,
           new JsonRpcProvider(BOT_CHAIN_TESTNET.rpcUrl),
         );
-        const [rawDevice, fresh] = await Promise.all([
-          contract.getDevice(deviceId),
-          contract.isFresh(deviceId) as Promise<boolean>,
-        ]);
+        const [selectedSnapshot, deviceIds] = await withTimeout(
+          Promise.all([
+            readDeviceSnapshot(contract, deviceId),
+            contract.listDeviceIds() as Promise<string[]>,
+          ]),
+          10000,
+          "BOT Chain RPC read timed out",
+        );
+        const registry = await Promise.all(
+          deviceIds.slice(0, 6).map(async (id) => ({
+            id,
+            snapshot: await readDeviceSnapshot(contract, id),
+            fresh: await contract.isFresh(id) as boolean,
+          })),
+        );
 
         if (cancelled) return;
-        setDevice({
-          owner: rawDevice.owner as string,
-          metadataURI: rawDevice.metadataURI as string,
-          registeredAt: rawDevice.registeredAt as bigint,
-          lastSeenAt: rawDevice.lastSeenAt as bigint,
-          heartbeatCount: rawDevice.heartbeatCount as bigint,
-          latestDataHash: rawDevice.latestDataHash as string,
-          latestMetricType: rawDevice.latestMetricType as string,
-          latestValue: rawDevice.latestValue as bigint,
-          active: rawDevice.active as boolean,
-          fresh,
-        });
-        setStatus(`Loaded ${deviceLabel} from BOT Chain. Connect a wallet to register or submit another pulse.`);
+        setDevice(selectedSnapshot);
+        setRegistryDevices(registry);
+        setStatus(`Loaded ${deviceLabel} from BOT Chain. Connect a wallet only if you want to register or send a new heartbeat.`);
       } catch {
         if (!cancelled) {
           setDevice(null);
-          setStatus("Connect a wallet to interact with the deployed BOT Chain contract.");
+          setRegistryDevices([]);
+          setPublicError("BOT Chain RPC read failed. The contract link still opens on the explorer; retry refresh before sending a transaction.");
+          setStatus("BOT Chain RPC read failed. Use the explorer link to verify the contract, or retry Refresh State.");
         }
+      } finally {
+        if (!cancelled) setPublicLoading(false);
       }
     }
 
@@ -363,22 +415,24 @@ export default function BotPulseDapp() {
     setBusy(true);
     try {
       const contract = await getContract(false);
-      const [rawDevice, fresh] = await Promise.all([
-        contract.getDevice(deviceId),
-        contract.isFresh(deviceId) as Promise<boolean>,
-      ]);
-      setDevice({
-        owner: rawDevice.owner as string,
-        metadataURI: rawDevice.metadataURI as string,
-        registeredAt: rawDevice.registeredAt as bigint,
-        lastSeenAt: rawDevice.lastSeenAt as bigint,
-        heartbeatCount: rawDevice.heartbeatCount as bigint,
-        latestDataHash: rawDevice.latestDataHash as string,
-        latestMetricType: rawDevice.latestMetricType as string,
-        latestValue: rawDevice.latestValue as bigint,
-        active: rawDevice.active as boolean,
-        fresh,
-      });
+      const [selectedSnapshot, deviceIds] = await withTimeout(
+        Promise.all([
+          readDeviceSnapshot(contract, deviceId),
+          contract.listDeviceIds() as Promise<string[]>,
+        ]),
+        10000,
+        "BOT Chain RPC read timed out",
+      );
+      const registry = await Promise.all(
+        deviceIds.slice(0, 6).map(async (id) => ({
+          id,
+          snapshot: await readDeviceSnapshot(contract, id),
+          fresh: await contract.isFresh(id) as boolean,
+        })),
+      );
+      setDevice(selectedSnapshot);
+      setRegistryDevices(registry);
+      setPublicError("");
       setStatus(`Loaded ${deviceLabel} from BOT Chain.`);
     } catch (error) {
       setDevice(null);
@@ -394,7 +448,7 @@ export default function BotPulseDapp() {
     setDeviceLabel(personalLabel);
     setMetadataURI(`ipfs://bot-pulse/${personalLabel}.json`);
     setDevice(null);
-    setStatus("Demo device belongs to another wallet. Personal device label selected — register it first, then send a pulse.");
+    setStatus("Seeded challenge gateway belongs to another wallet. Personal device label selected — register it first, then send a pulse.");
   }
 
   async function registerDevice() {
@@ -479,7 +533,7 @@ export default function BotPulseDapp() {
           </div>
         </div>
         <div className="hidden items-center gap-3 text-sm font-semibold text-ink-soft sm:flex">
-          <a href="#demo" className="hover:text-foreground">Demo</a>
+          <a href="#live-state" className="hover:text-foreground">Live state</a>
           <a href="#interact" className="hover:text-foreground">Interact</a>
           <a href="#contract" className="hover:text-foreground">Contract</a>
         </div>
@@ -504,7 +558,7 @@ export default function BotPulseDapp() {
               DePIN uptime, enforced by public heartbeat proofs.
             </h1>
             <p className="max-w-2xl text-lg leading-8 text-ink-soft sm:text-xl">
-              BOT Pulse turns simple device check-ins into an uptime watchtower: operators commit to a heartbeat window, BOT Chain records the latest proof, and anyone can see whether a gateway is covered, at risk, or already stale.
+              BOT Pulse turns simple device check-ins into an uptime watchtower: operators commit to a heartbeat window, BOT Chain records the latest proof, and anyone can see whether a gateway is covered or stale.
             </p>
           </div>
 
@@ -538,7 +592,7 @@ export default function BotPulseDapp() {
           </div>
         </div>
 
-        <div id="demo" className={`pulse-stage rounded-[2.5rem] border border-black/10 bg-paper/70 p-5 soft-shadow backdrop-blur ${pulseNonce ? "pulse-confirmed" : ""}`} key={pulseNonce}>
+        <div id="live-state" className={`pulse-stage rounded-[2.5rem] border border-black/10 bg-paper/70 p-5 soft-shadow backdrop-blur ${pulseNonce ? "pulse-confirmed" : ""}`} key={pulseNonce}>
           <div className="pulse-wave"></div>
           <div className="pulse-wave"></div>
           <div className="pulse-wave"></div>
@@ -586,7 +640,7 @@ export default function BotPulseDapp() {
             </div>
             {deviceBelongsToAnotherWallet ? (
               <p className="mt-2 rounded-2xl bg-signal/15 p-3 text-sm font-bold text-signal-strong">
-                This demo device is owned by {shortAddress(device?.owner ?? "")}. Use your own device label to register and send pulses from your wallet.
+                Seeded challenge gateway is owned by {shortAddress(device?.owner ?? "")}. Use your own device label to register and send pulses from your wallet.
               </p>
             ) : null}
             {chainId && !onCorrectChain ? (
@@ -621,17 +675,28 @@ export default function BotPulseDapp() {
                 <input value={metricValue} onChange={(event) => setMetricValue(event.target.value.replace(/[^0-9-]/g, ""))} className="rounded-2xl border border-black/10 bg-white/70 px-4 py-3 text-foreground outline-none focus:border-signal" />
               </label>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <button onClick={registerDevice} disabled={busy || !account || Boolean(device?.active && isDeviceOwner)} className="rounded-2xl bg-foreground px-5 py-3 font-black text-paper transition hover:bg-moss disabled:cursor-not-allowed disabled:opacity-50">
-                {deviceBelongsToAnotherWallet ? "Use My Device" : device?.active && isDeviceOwner ? "Registered" : "Register Device"}
-              </button>
-              <button onClick={sendHeartbeat} disabled={busy || !account || !device?.active || !isDeviceOwner} className="rounded-2xl bg-signal px-5 py-3 font-black text-white transition hover:bg-signal-strong disabled:cursor-not-allowed disabled:opacity-50">
-                Prove Uptime
-              </button>
-              <button onClick={refreshDevice} disabled={busy} className="rounded-2xl border border-black/15 bg-paper px-5 py-3 font-black text-foreground transition hover:border-moss disabled:cursor-not-allowed disabled:opacity-50">
-                Refresh State
-              </button>
-            </div>
+            {!account ? (
+              <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <button onClick={connectWallet} disabled={busy} className="rounded-2xl bg-foreground px-5 py-3 font-black text-paper transition hover:bg-moss disabled:cursor-not-allowed disabled:opacity-50">
+                  Connect wallet to register or send heartbeat
+                </button>
+                <button onClick={refreshDevice} disabled={busy} className="rounded-2xl border border-black/15 bg-paper px-5 py-3 font-black text-foreground transition hover:border-moss disabled:cursor-not-allowed disabled:opacity-50">
+                  Refresh State
+                </button>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-3">
+                <button onClick={registerDevice} disabled={busy || Boolean(device?.active && isDeviceOwner)} className="rounded-2xl bg-foreground px-5 py-3 font-black text-paper transition hover:bg-moss disabled:cursor-not-allowed disabled:opacity-50">
+                  {registerButtonLabel}
+                </button>
+                <button onClick={sendHeartbeat} disabled={busy || !device?.active || !isDeviceOwner} className="rounded-2xl bg-signal px-5 py-3 font-black text-white transition hover:bg-signal-strong disabled:cursor-not-allowed disabled:opacity-50">
+                  {heartbeatButtonLabel}
+                </button>
+                <button onClick={refreshDevice} disabled={busy} className="rounded-2xl border border-black/15 bg-paper px-5 py-3 font-black text-foreground transition hover:border-moss disabled:cursor-not-allowed disabled:opacity-50">
+                  Refresh State
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -642,7 +707,7 @@ export default function BotPulseDapp() {
               <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Freshness becomes accountability</h2>
             </div>
             <span className={`rounded-full px-4 py-2 text-sm font-black text-white ${device?.fresh ? "bg-moss" : "bg-clay"}`}>
-              {device?.fresh ? "fresh" : "not fresh"}
+              {publicLoading ? "loading" : device?.fresh ? "fresh" : "SLA breach"}
             </span>
           </div>
 
@@ -653,10 +718,10 @@ export default function BotPulseDapp() {
               ["proof age", slaClock],
               ["owner", device ? shortAddress(device.owner) : "—"],
               ["heartbeat count", device ? device.heartbeatCount.toString() : "—"],
-              ["latest metric", device?.latestMetricType || "—"],
+              ["latest metric", formatMetricLabel(device?.latestMetricType || "")],
               ["latest value", device ? device.latestValue.toString() : "—"],
               ["last seen", device ? formatTimestamp(device.lastSeenAt) : "—"],
-              ["active", device ? String(device.active) : "—"],
+              ["active", device ? (device.active ? "yes" : "no") : "—"],
             ].map(([label, value]) => (
               <div key={label} className="rounded-2xl bg-paper-strong p-4">
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-clay">{label}</p>
@@ -676,57 +741,83 @@ export default function BotPulseDapp() {
         <div className="rounded-[2rem] border border-black/10 bg-paper/85 p-5 soft-shadow">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">SLA watchtower</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Fleet view for uptime risk</h2>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">Live registry</p>
+              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Only devices read from the contract.</h2>
             </div>
-            <div className="rounded-full bg-moss px-4 py-2 text-sm font-black text-white">{slaDevices.length} devices</div>
+            <div className="rounded-full bg-moss px-4 py-2 text-sm font-black text-white">
+              {publicLoading ? "reading RPC" : publicError ? "RPC unavailable" : `${registryDevices.length} on-chain`}
+            </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {slaDevices.map((demoDevice) => (
-              <article key={demoDevice.id} className="stamped rounded-[1.5rem] bg-paper-strong p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-black">{demoDevice.name}</p>
-                    <p className="text-sm text-ink-soft">{demoDevice.region}</p>
+          {publicError ? (
+            <p className="rounded-2xl bg-signal/15 p-4 text-sm font-bold leading-6 text-signal-strong">{publicError}</p>
+          ) : null}
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {registryDevices.map((entry, index) => {
+              const state = slaState(entry.snapshot);
+              return (
+                <article key={entry.id} className="stamped rounded-[1.5rem] bg-paper-strong p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-black capitalize">{metadataName(entry.snapshot.metadataURI, entry.id)}</p>
+                      <p className="mt-1 break-all font-mono text-xs text-ink-soft">{entry.id}</p>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-black uppercase ${entry.snapshot.fresh ? "bg-leaf/25 text-moss" : "bg-signal/20 text-signal-strong"}`}>
+                      {state}
+                    </span>
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-black uppercase ${demoDevice.status === "covered" ? "bg-leaf/25 text-moss" : demoDevice.status === "at risk" ? "bg-signal/20 text-signal-strong" : "bg-sky/30 text-moss"}`}>
-                    {demoDevice.status}
-                  </span>
-                </div>
-                <div className="my-5 rounded-2xl bg-paper p-4">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-clay">{demoDevice.metric}</p>
-                  <p className="mt-1 text-4xl font-black tracking-[-0.06em]">{demoDevice.value}</p>
-                </div>
-                <div className="flex items-center justify-between text-xs font-bold text-ink-soft">
-                  <span>{demoDevice.id}</span>
-                  <span>{demoDevice.window}</span>
-                </div>
-              </article>
-            ))}
+                  <div className="my-5 grid gap-3 rounded-2xl bg-paper p-4 sm:grid-cols-3">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-clay">metric</p>
+                      <p className="mt-1 text-base font-black leading-tight">{formatMetricLabel(entry.snapshot.latestMetricType)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-clay">value</p>
+                      <p className="mt-1 text-lg font-black">{entry.snapshot.latestValue.toString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-clay">proofs</p>
+                      <p className="mt-1 text-lg font-black">{entry.snapshot.heartbeatCount.toString()}</p>
+                    </div>
+                  </div>
+                  <div className="grid gap-2 text-xs font-bold text-ink-soft sm:grid-cols-2">
+                    <span>Owner: {shortAddress(entry.snapshot.owner)}</span>
+                    <span>{formatSlaClock(entry.snapshot.lastSeenAt)}</span>
+                  </div>
+                  {index === 0 ? (
+                    <p className="mt-3 rounded-2xl bg-leaf/20 p-3 text-xs font-bold leading-5 text-moss">
+                      This is the seeded challenge gateway. Other rows appear only after wallets register more devices on-chain.
+                    </p>
+                  ) : null}
+                </article>
+              );
+            })}
           </div>
         </div>
 
         <aside className="rounded-[2rem] border border-black/10 bg-foreground p-5 text-paper soft-shadow">
           <p className="text-xs font-black uppercase tracking-[0.24em] text-sky">Evidence trail</p>
-          <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">If a node misses service, the chain shows it.</h2>
-          <ol className="mt-6 space-y-3">
-            {(txLog.length ? txLog : proofSteps.map((step, index) => ({ label: `${index + 1}. ${step}`, hash: "" }))).map((entry) => (
-              <li key={`${entry.label}-${entry.hash}`} className="rounded-2xl bg-white/8 p-3 text-sm leading-6 text-paper/80">
-                {entry.hash ? (
+          <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Every visible status must come from a contract read or a submitted tx.</h2>
+          {txLog.length ? (
+            <ol className="mt-6 space-y-3">
+              {txLog.map((entry) => (
+                <li key={`${entry.label}-${entry.hash}`} className="rounded-2xl bg-white/8 p-3 text-sm leading-6 text-paper/80">
                   <a href={explorerTx(entry.hash)} target="_blank" rel="noreferrer" className="font-bold text-sky hover:text-white">
                     {entry.label}: {shortAddress(entry.hash)}
                   </a>
-                ) : (
-                  entry.label
-                )}
-              </li>
-            ))}
-          </ol>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <div className="mt-6 rounded-2xl bg-white/8 p-4 text-sm leading-6 text-paper/80">
+              No wallet transaction has been sent in this browser session. Use the contract link above to verify the deployed registry, or connect a wallet to register a device and produce a new explorer-linked transaction here.
+            </div>
+          )}
           <div className="mt-6 rounded-2xl border border-white/10 bg-white/8 p-4 font-mono text-xs leading-6 text-paper/75">
-            registerDevice(bytes32 id, metadataURI)<br />
-            submitHeartbeat(id, dataHash, metric, value)<br />
-            isFresh(id) → true / false
+            {proofSteps.map((step) => (
+              <div key={step}>✓ {step}</div>
+            ))}
           </div>
         </aside>
       </section>
