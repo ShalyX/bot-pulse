@@ -4,9 +4,9 @@
 - GitHub: https://github.com/ShalyX/bot-pulse
 - Contract: https://scan.bohr.life/address/0x588eb96429A3c22f22848185F2b5FfD08AdfD8Ae
 
-BOT Pulse is a BOT Chain Builder Challenge DePIN / Real World demo: a small EVM heartbeat registry where devices or gateways publish signed data packet hashes to BOT Chain testnet.
+BOT Pulse is a BOT Chain Builder Challenge DePIN / Real World demo: a small uptime/SLA watchtower where devices or gateways publish heartbeat packet hashes to BOT Chain testnet, and the dashboard turns those proofs into public covered / at-risk / stale service status.
 
-The project is intentionally grounded: the MVP uses simulated device agents and a real on-chain registry contract. It demonstrates the path real DePIN gateways, sensors, node operators, or data relays could use to anchor liveness and freshness proofs cheaply on BOT Chain.
+The project is intentionally grounded: the MVP uses simulated device agents and a real on-chain registry contract. It demonstrates the path real DePIN gateways, sensors, node operators, or data relays could use to prove liveness, expose missed service windows, and recover status with a fresh BOT Chain transaction.
 
 ## BOT Chain testnet
 
@@ -20,11 +20,12 @@ The project is intentionally grounded: the MVP uses simulated device agents and 
 
 1. A user connects an EVM wallet on BOT Chain testnet from the website.
 2. A device/gateway registers a `bytes32` device ID from the UI or CLI.
-3. The device submits heartbeat packet hashes with metric labels and values.
-4. BOT Chain stores the latest freshness state and emits verifier-friendly events.
-5. The dashboard reads the deployed contract through BOT Chain RPC and displays owner, heartbeat count, latest metric, packet hash, and fresh/stale state.
-6. Confirmed heartbeat transactions trigger the animated pulse uplink and append explorer links to the tx log.
-7. Judges can verify the contract address, deployment tx, and heartbeat interaction tx on the BOT Chain explorer.
+3. The operator treats each heartbeat as a public uptime check against a 15-minute service window.
+4. The device submits heartbeat packet hashes with metric labels and values.
+5. BOT Chain stores the latest freshness state and emits verifier-friendly events.
+6. The dashboard reads the deployed contract through BOT Chain RPC and displays owner, heartbeat count, latest metric, packet hash, proof age, breach clock, and covered/stale status.
+7. Confirmed heartbeat transactions trigger the animated pulse uplink and append explorer links to the tx log.
+8. Judges can verify the contract address, deployment tx, and heartbeat interaction tx on the BOT Chain explorer.
 
 ## Contract
 
@@ -88,24 +89,25 @@ Wallet interaction notes:
 - Contract address: `0x588eb96429A3c22f22848185F2b5FfD08AdfD8Ae`
 - Deployment tx hash: `0x30b40b0cf3b54c575db6926379d31d605e89210d87d46ddb81c26cd35bbfaeb3`
 - Device registration tx hash: `0x94655b48d262f0664e88081b8f5b487fe5662aaf6da811bb94d24b19706ef530`
-- Heartbeat tx hash: `0x6accffb04d604a0c6fa299db190574741b5b2b9c450398a9bfd82a9c29592251`
-- Heartbeat explorer: `https://scan.bohr.life/tx/0x6accffb04d604a0c6fa299db190574741b5b2b9c450398a9bfd82a9c29592251`
+- Heartbeat tx hash: `0x42875399514ef5454d558d05e5fdfb30dc6be69d51f78da6a83816e8f74ad1bd`
+- Heartbeat explorer: `https://scan.bohr.life/tx/0x42875399514ef5454d558d05e5fdfb30dc6be69d51f78da6a83816e8f74ad1bd`
 - GitHub repo: `https://github.com/ShalyX/bot-pulse`
 - Live demo: `https://bot-pulse-virid.vercel.app`
 - X showcase post tagging `@BOTChain_ai`: add the final post URL before submission.
 
 ## Demo recording flow
 
-1. Run `npm run demo:heartbeat` shortly before recording so the deployed device shows `fresh` on load.
+1. Run `npm run demo:heartbeat` shortly before recording so the deployed device shows `fresh` / `SLA covered` on load.
 2. Run `npm run dev` and open the printed local URL.
-3. Start on the hero: show the deployed contract card, `Heartbeat uplink confirmed`, and the BOT Chain links.
-4. Scroll to **Live contract controls** and show the public RPC-loaded state: owner, heartbeat count, latest metric/value, latest hash, and `fresh` badge.
-5. Open the heartbeat explorer URL above to verify the latest pulse transaction.
-6. Optional wallet path: connect a BOT Chain testnet-funded wallet, register a personal device label if prompted, then send a pulse from the UI.
+3. Start on the hero: explain the product as a DePIN uptime watchtower, not just a heartbeat registry.
+4. Show the live SLA cards: 15-minute window, proof age, breach clock, and BOT Chain contract.
+5. Scroll to **SLA proof controls** and show the public RPC-loaded state: owner, heartbeat count, latest metric/value, latest hash, and `fresh` badge.
+6. Open the heartbeat explorer URL above to verify the latest pulse transaction.
+7. Optional wallet path: connect a BOT Chain testnet-funded wallet, register a personal device label if prompted, then prove uptime from the UI.
 
 ## Honest limitations
 
 - MVP uses simulated/signed device agents, not production hardware.
 - The contract stores packet hashes and freshness state; raw device data is expected to live off-chain.
-- No tokenomics or payout settlement is included in the MVP.
+- SLA status is currently derived from the contract's 15-minute freshness window; there are no automated penalties or payouts in this MVP.
 - This is a testnet challenge prototype, not an audited DePIN protocol.

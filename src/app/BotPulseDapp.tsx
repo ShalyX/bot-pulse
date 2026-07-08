@@ -42,41 +42,41 @@ declare global {
 const initialDeviceId = "gateway-lagos-01";
 const initialMetadata = "ipfs://bot-pulse/gateway-lagos-01.json";
 
-const devices = [
+const slaDevices = [
   {
     id: "LG-GW-01",
     name: "Lagos Gateway",
     metric: "latency_ms",
     value: "42",
-    status: "fresh",
+    status: "covered",
     region: "West Africa",
-    tx: "0x4b18…6f93",
+    window: "15 min SLA",
   },
   {
     id: "ACC-SOLAR-04",
     name: "Solar Meter",
     metric: "watt_hours",
     value: "812",
-    status: "fresh",
+    status: "ready",
     region: "Accra",
-    tx: "ready",
+    window: "awaiting tx",
   },
   {
     id: "NBI-AIR-02",
     name: "Air Sensor",
     metric: "pm25",
     value: "18",
-    status: "watch",
+    status: "at risk",
     region: "Nairobi",
-    tx: "ready",
+    window: "breach watch",
   },
 ];
 
 const proofSteps = [
-  "Device signs packet off-chain",
-  "Gateway hashes metric + timestamp + nonce",
-  "Heartbeat tx is sent to BOT Chain testnet",
-  "Dashboard reads event logs and freshness state",
+  "Operator commits an uptime window for a device",
+  "Gateway hashes the latest service packet off-chain",
+  "Heartbeat tx anchors liveness evidence on BOT Chain",
+  "Dashboard turns the contract state into SLA status",
 ];
 
 function shortAddress(address: string) {
@@ -94,6 +94,28 @@ function explorerAddress(address: string) {
 function formatTimestamp(value: bigint) {
   if (value === 0n) return "never";
   return new Date(Number(value) * 1000).toLocaleString();
+}
+
+function minutesSince(value: bigint) {
+  if (value === 0n) return null;
+  return Math.max(0, Math.floor((Date.now() - Number(value) * 1000) / 60000));
+}
+
+function formatSlaClock(value: bigint) {
+  const minutes = minutesSince(value);
+  if (minutes === null) return "no heartbeat yet";
+  if (minutes < 1) return "just checked in";
+  if (minutes === 1) return "1 min since last proof";
+  return `${minutes} min since last proof`;
+}
+
+function formatBreachEta(value: bigint) {
+  const minutes = minutesSince(value);
+  if (minutes === null) return "needs first heartbeat";
+  const remaining = 15 - minutes;
+  if (remaining <= 0) return `${Math.abs(remaining)} min over SLA`;
+  if (remaining === 1) return "1 min until SLA breach";
+  return `${remaining} min until SLA breach`;
 }
 
 function readableWalletError(error: unknown, fallback: string) {
@@ -177,6 +199,9 @@ export default function BotPulseDapp() {
   const deviceOwner = device?.owner.toLowerCase() ?? "";
   const isDeviceOwner = Boolean(connectedAccount && deviceOwner && connectedAccount === deviceOwner);
   const deviceBelongsToAnotherWallet = Boolean(account && device?.active && deviceOwner && !isDeviceOwner);
+  const slaClock = device ? formatSlaClock(device.lastSeenAt) : "waiting for contract read";
+  const breachEta = device ? formatBreachEta(device.lastSeenAt) : "waiting for contract read";
+  const liveSlaState = device?.fresh ? "SLA covered" : device?.lastSeenAt && device.lastSeenAt > 0n ? "SLA breach" : "No proof yet";
 
   useEffect(() => {
     let cancelled = false;
@@ -450,7 +475,7 @@ export default function BotPulseDapp() {
           </div>
           <div>
             <p className="text-sm font-black uppercase tracking-[0.28em] text-moss">BOT Pulse</p>
-            <p className="text-xs text-ink-soft">DePIN heartbeat proofs</p>
+            <p className="text-xs text-ink-soft">DePIN SLA watchtower</p>
           </div>
         </div>
         <div className="hidden items-center gap-3 text-sm font-semibold text-ink-soft sm:flex">
@@ -476,18 +501,18 @@ export default function BotPulseDapp() {
 
           <div className="space-y-5">
             <h1 className="max-w-4xl text-5xl font-black leading-[0.95] tracking-[-0.07em] text-foreground sm:text-7xl">
-              Device pulses, anchored on BOT Chain.
+              DePIN uptime, enforced by public heartbeat proofs.
             </h1>
             <p className="max-w-2xl text-lg leading-8 text-ink-soft sm:text-xl">
-              Register a simulated DePIN gateway, send a live heartbeat transaction, and verify freshness directly from the deployed BOT Chain contract.
+              BOT Pulse turns simple device check-ins into an uptime watchtower: operators commit to a heartbeat window, BOT Chain records the latest proof, and anyone can see whether a gateway is covered, at risk, or already stale.
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
             {[
-              ["Chain", "BOT testnet", "968"],
-              ["Contract", shortAddress(BOT_PULSE_CONTRACT_ADDRESS), "deployed"],
-              ["Proof", "event log", "hash"],
+              ["SLA", "15 min", "freshness window"],
+              ["Live state", liveSlaState, breachEta],
+              ["Contract", shortAddress(BOT_PULSE_CONTRACT_ADDRESS), "BOT testnet · 968"],
             ].map(([label, value, sub]) => (
               <div key={label} className="rounded-3xl border border-black/10 bg-paper/75 p-4 soft-shadow">
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-clay">{label}</p>
@@ -499,7 +524,7 @@ export default function BotPulseDapp() {
 
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <a href="#interact" className="rounded-full bg-signal px-6 py-3 text-center font-black text-white shadow-xl shadow-orange-900/20 transition hover:bg-signal-strong">
-              Send live pulse
+              Prove uptime
             </a>
             <a href={explorerAddress(BOT_PULSE_CONTRACT_ADDRESS)} target="_blank" rel="noreferrer" className="rounded-full border border-black/15 bg-paper px-6 py-3 text-center font-black text-foreground transition hover:border-signal hover:text-signal-strong">
               View contract
@@ -521,7 +546,7 @@ export default function BotPulseDapp() {
 
           <div className="absolute left-1/2 top-12 h-60 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-signal/60 to-transparent"></div>
           <div className="absolute left-1/2 top-28 flex -translate-x-1/2 flex-col items-center gap-5">
-            {["BOT block", "event log", "fresh", "packet", "nonce"].map((label) => (
+            {["uptime SLA", "event log", "covered", "packet", "breach clock"].map((label) => (
               <div key={label} className="uplink-dot rounded-full border border-black/10 bg-paper px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-moss soft-shadow">
                 {label}
               </div>
@@ -535,10 +560,10 @@ export default function BotPulseDapp() {
             <div className="text-center">
               <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">{deviceLabel || "Gateway"}</p>
               <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">
-                {device?.fresh ? "Heartbeat uplink confirmed" : "Ready for heartbeat uplink"}
+                {device?.fresh ? "Uptime SLA covered" : device?.lastSeenAt && device.lastSeenAt > 0n ? "SLA breach visible" : "Ready to prove uptime"}
               </h2>
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink-soft">
-                Confirmed wallet transactions trigger the pulse animation and refresh state from BOT Chain RPC.
+                A fresh heartbeat keeps the device covered. A missed heartbeat becomes public breach evidence that operators, customers, or bounty reviewers can inspect on BOT Chain.
               </p>
             </div>
           </div>
@@ -548,8 +573,8 @@ export default function BotPulseDapp() {
       <section id="interact" className="mx-auto grid max-w-7xl gap-6 pb-12 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="rounded-[2rem] border border-black/10 bg-paper/85 p-5 soft-shadow">
           <div className="mb-5">
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">Live contract controls</p>
-            <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Register device, then send pulse.</h2>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">SLA proof controls</p>
+            <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Register device, then prove uptime.</h2>
             <p className="mt-2 max-h-28 overflow-auto break-words rounded-2xl bg-paper-strong p-3 text-sm leading-6 text-ink-soft">{status}</p>
             <div className="mt-2 flex flex-wrap gap-2 text-sm font-bold">
               <a href={BOT_CHAIN_TESTNET.faucetUrl} target="_blank" rel="noreferrer" className="rounded-full bg-signal/15 px-3 py-2 text-signal-strong hover:bg-signal/25">
@@ -601,7 +626,7 @@ export default function BotPulseDapp() {
                 {deviceBelongsToAnotherWallet ? "Use My Device" : device?.active && isDeviceOwner ? "Registered" : "Register Device"}
               </button>
               <button onClick={sendHeartbeat} disabled={busy || !account || !device?.active || !isDeviceOwner} className="rounded-2xl bg-signal px-5 py-3 font-black text-white transition hover:bg-signal-strong disabled:cursor-not-allowed disabled:opacity-50">
-                Send Pulse
+                Prove Uptime
               </button>
               <button onClick={refreshDevice} disabled={busy} className="rounded-2xl border border-black/15 bg-paper px-5 py-3 font-black text-foreground transition hover:border-moss disabled:cursor-not-allowed disabled:opacity-50">
                 Refresh State
@@ -613,8 +638,8 @@ export default function BotPulseDapp() {
         <div className="rounded-[2rem] border border-black/10 bg-paper/85 p-5 soft-shadow" id="contract">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">On-chain device state</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Freshness from BOT RPC</h2>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">On-chain SLA state</p>
+              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Freshness becomes accountability</h2>
             </div>
             <span className={`rounded-full px-4 py-2 text-sm font-black text-white ${device?.fresh ? "bg-moss" : "bg-clay"}`}>
               {device?.fresh ? "fresh" : "not fresh"}
@@ -623,6 +648,9 @@ export default function BotPulseDapp() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             {[
+              ["SLA state", liveSlaState],
+              ["breach clock", breachEta],
+              ["proof age", slaClock],
               ["owner", device ? shortAddress(device.owner) : "—"],
               ["heartbeat count", device ? device.heartbeatCount.toString() : "—"],
               ["latest metric", device?.latestMetricType || "—"],
@@ -648,21 +676,21 @@ export default function BotPulseDapp() {
         <div className="rounded-[2rem] border border-black/10 bg-paper/85 p-5 soft-shadow">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">Device board</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Example DePIN nodes</h2>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-clay">SLA watchtower</p>
+              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Fleet view for uptime risk</h2>
             </div>
-            <div className="rounded-full bg-moss px-4 py-2 text-sm font-black text-white">{devices.length} devices</div>
+            <div className="rounded-full bg-moss px-4 py-2 text-sm font-black text-white">{slaDevices.length} devices</div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            {devices.map((demoDevice) => (
+            {slaDevices.map((demoDevice) => (
               <article key={demoDevice.id} className="stamped rounded-[1.5rem] bg-paper-strong p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-black">{demoDevice.name}</p>
                     <p className="text-sm text-ink-soft">{demoDevice.region}</p>
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-black uppercase ${demoDevice.status === "fresh" ? "bg-leaf/25 text-moss" : "bg-signal/20 text-signal-strong"}`}>
+                  <span className={`rounded-full px-3 py-1 text-xs font-black uppercase ${demoDevice.status === "covered" ? "bg-leaf/25 text-moss" : demoDevice.status === "at risk" ? "bg-signal/20 text-signal-strong" : "bg-sky/30 text-moss"}`}>
                     {demoDevice.status}
                   </span>
                 </div>
@@ -672,7 +700,7 @@ export default function BotPulseDapp() {
                 </div>
                 <div className="flex items-center justify-between text-xs font-bold text-ink-soft">
                   <span>{demoDevice.id}</span>
-                  <span>{demoDevice.tx}</span>
+                  <span>{demoDevice.window}</span>
                 </div>
               </article>
             ))}
@@ -680,8 +708,8 @@ export default function BotPulseDapp() {
         </div>
 
         <aside className="rounded-[2rem] border border-black/10 bg-foreground p-5 text-paper soft-shadow">
-          <p className="text-xs font-black uppercase tracking-[0.24em] text-sky">Tx log</p>
-          <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Verifier-friendly, not vaporware.</h2>
+          <p className="text-xs font-black uppercase tracking-[0.24em] text-sky">Evidence trail</p>
+          <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">If a node misses service, the chain shows it.</h2>
           <ol className="mt-6 space-y-3">
             {(txLog.length ? txLog : proofSteps.map((step, index) => ({ label: `${index + 1}. ${step}`, hash: "" }))).map((entry) => (
               <li key={`${entry.label}-${entry.hash}`} className="rounded-2xl bg-white/8 p-3 text-sm leading-6 text-paper/80">

@@ -1,22 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "BOT Pulse — DePIN Heartbeat Proofs on BOT Chain",
+  title: "BOT Pulse — DePIN SLA Watchtower on BOT Chain",
   description:
-    "Animated DePIN heartbeat and data proof registry demo for BOT Chain testnet.",
-  keywords: ["BOT Chain", "DePIN", "heartbeat", "EVM", "testnet", "AI infrastructure"],
+    "DePIN uptime/SLA watchtower demo that turns BOT Chain heartbeat proofs into public freshness and breach evidence.",
+  keywords: ["BOT Chain", "DePIN", "SLA", "uptime", "heartbeat", "EVM", "testnet"],
 };
 
 export default function RootLayout({
@@ -25,10 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
