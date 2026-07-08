@@ -39,9 +39,28 @@ type RegistryDevice = {
   fresh: boolean;
 };
 
+type WalletProvider = Eip1193Provider & {
+  providers?: WalletProvider[];
+  on?: (event: string, listener: (...args: unknown[]) => void) => void;
+  removeListener?: (event: string, listener: (...args: unknown[]) => void) => void;
+  isMetaMask?: boolean;
+  isRabby?: boolean;
+  isCoinbaseWallet?: boolean;
+  isBraveWallet?: boolean;
+  isOKExWallet?: boolean;
+  isPhantom?: boolean;
+  isTrust?: boolean;
+};
+
+type WalletOption = {
+  id: string;
+  name: string;
+  provider: WalletProvider;
+};
+
 declare global {
   interface Window {
-    ethereum?: Eip1193Provider;
+    ethereum?: WalletProvider;
   }
 }
 
@@ -176,24 +195,47 @@ function readableWalletError(error: unknown, fallback: string) {
   return fallback;
 }
 
-async function getBrowserProvider() {
-  if (!window.ethereum) {
-    throw new Error("No EVM wallet found. Install MetaMask/Rabby and add BOT Chain testnet.");
-  }
-  return new BrowserProvider(window.ethereum);
+function walletName(provider: WalletProvider, fallback = "Injected wallet") {
+  if (provider.isRabby) return "Rabby";
+  if (provider.isMetaMask) return "MetaMask";
+  if (provider.isCoinbaseWallet) return "Coinbase Wallet";
+  if (provider.isBraveWallet) return "Brave Wallet";
+  if (provider.isOKExWallet) return "OKX Wallet";
+  if (provider.isPhantom) return "Phantom";
+  if (provider.isTrust) return "Trust Wallet";
+  return fallback;
 }
 
-async function ensureBotChain() {
-  if (!window.ethereum) return;
+function dedupeWallets(wallets: WalletOption[]) {
+  const seen = new Set<WalletProvider>();
+  return wallets.filter((wallet) => {
+    if (seen.has(wallet.provider)) return false;
+    seen.add(wallet.provider);
+    return true;
+  });
+}
+
+async function getBrowserProvider(provider?: WalletProvider) {
+  if (!provider) {
+    throw new Error("No EVM wallet selected. Choose MetaMask, Rabby, or another injected wallet first.");
+  }
+  return new BrowserProvider(provider);
+}
+
+async function ensureBotChain(provider?: WalletProvider) {
+  if (!provider) {
+    throw new Error("No EVM wallet selected. Choose a wallet first.");
+  }
+
   try {
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_switchEthereumChain",
       params: [{ chainId: BOT_CHAIN_TESTNET.chainIdHex }],
     });
   } catch (error) {
     const maybeError = error as { code?: number };
     if (maybeError.code !== 4902) throw error;
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_addEthereumChain",
       params: [
         {
@@ -205,7 +247,17 @@ async function ensureBotChain() {
         },
       ],
     });
+    await provider.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: BOT_CHAIN_TESTNET.chainIdHex }],
+    });
   }
+
+  const currentChainId = await provider.request({ method: "eth_chainId" }) as string;
+  if (currentChainId.toLowerCase() !== BOT_CHAIN_TESTNET.chainIdHex) {
+    throw new Error(`Wrong network selected (${currentChainId}). Switch to BOT Chain Testnet ${BOT_CHAIN_TESTNET.chainIdHex} before sending transactions.`);
+  }
+  return BigInt(currentChainId);
 }
 
 export default function BotPulseDapp() {
@@ -223,8 +275,15 @@ export default function BotPulseDapp() {
   const [status, setStatus] = useState("Loading BOT Chain contract state...");
   const [busy, setBusy] = useState(false);
   const [pulseNonce, setPulseNonce] = useState(0);
+  const [wallets, setWallets] = useState<WalletOption[]>([]);
+  const [selectedWalletId, setSelectedWalletId] = useState("");
 
   const deviceId = useMemo(() => keccak256(toUtf8Bytes(deviceLabel.trim() || initialDeviceId)), [deviceLabel]);
+  const selectedWallet = useMemo(
+    () => wallets.find((wallet) => wallet.id === selectedWalletId)?.provider ?? wallets[0]?.provider,
+    [selectedWalletId, wallets],
+  );
+  const selectedWalletName = wallets.find((wallet) => wallet.provider === selectedWallet)?.name ?? "Select wallet";
   const onCorrectChain = chainId === BOT_CHAIN_TESTNET.chainId;
   const connectedAccount = account.toLowerCase();
   const deviceOwner = device?.owner.toLowerCase() ?? "";
@@ -247,6 +306,42 @@ export default function BotPulseDapp() {
       : !isDeviceOwner
         ? "Use your own device"
         : "Prove Uptime";
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const discovered = new Map<string, WalletOption>();
+
+    function publish() {
+      const nextWallets = dedupeWallets(Array.from(discovered.values()));
+      setWallets(nextWallets);
+      setSelectedWalletId((current) => current || nextWallets[0]?.id || "");
+    }
+
+    function addProvider(provider: WalletProvider, name = walletName(provider), id = name) {
+      discovered.set(id, { id, name, provider });
+      publish();
+    }
+
+    function handleAnnouncement(event: Event) {
+      const detail = (event as CustomEvent<{ info?: { uuid?: string; name?: string }; provider?: WalletProvider }>).detail;
+      if (!detail?.provider) return;
+      const name = detail.info?.name || walletName(detail.provider);
+      const id = detail.info?.uuid || `${name}-${discovered.size}`;
+      addProvider(detail.provider, name, id);
+    }
+
+    window.addEventListener("eip6963:announceProvider", handleAnnouncement);
+    window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+    window.setTimeout(() => {
+      const injected = window.ethereum;
+      const providers = injected?.providers?.length ? injected.providers : injected ? [injected] : [];
+      providers.forEach((provider, index) => addProvider(provider, walletName(provider, `Injected wallet ${index + 1}`), `legacy-${index}-${walletName(provider)}`));
+    }, 250);
+
+    return () => window.removeEventListener("eip6963:announceProvider", handleAnnouncement);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -300,19 +395,21 @@ export default function BotPulseDapp() {
   }, [deviceId, deviceLabel]);
 
   useEffect(() => {
-    if (!window.ethereum) return;
+    if (!selectedWallet) return;
 
     let cancelled = false;
 
     async function detectConnectedWallet() {
       try {
-        const accounts = (await window.ethereum?.request({ method: "eth_accounts" })) as string[] | undefined;
-        const currentChainId = (await window.ethereum?.request({ method: "eth_chainId" })) as string | undefined;
+        const accounts = (await selectedWallet?.request({ method: "eth_accounts" })) as string[] | undefined;
+        const currentChainId = (await selectedWallet?.request({ method: "eth_chainId" })) as string | undefined;
 
         if (cancelled) return;
         if (accounts?.[0]) {
           setAccount(accounts[0]);
-          setStatus("Wallet already connected. Refreshing BOT Chain state...");
+          setStatus(`${selectedWalletName} selected. Locking network to BOT Chain Testnet...`);
+        } else {
+          setAccount("");
         }
         if (currentChainId) {
           setChainId(BigInt(currentChainId));
@@ -325,88 +422,66 @@ export default function BotPulseDapp() {
     function handleAccountsChanged(accounts: unknown) {
       const nextAccount = Array.isArray(accounts) && typeof accounts[0] === "string" ? accounts[0] : "";
       setAccount(nextAccount);
-      setStatus(nextAccount ? "Wallet account detected. Ready for BOT Chain actions." : "Wallet disconnected.");
+      setStatus(nextAccount ? `${selectedWalletName} account detected. BOT Chain Testnet is required for actions.` : "Wallet disconnected.");
     }
 
     function handleChainChanged(nextChainId: unknown) {
       if (typeof nextChainId === "string") {
         setChainId(BigInt(nextChainId));
+        if (nextChainId.toLowerCase() !== BOT_CHAIN_TESTNET.chainIdHex) {
+          setStatus(`Wrong network (${nextChainId}). Switch back to BOT Chain Testnet ${BOT_CHAIN_TESTNET.chainIdHex}.`);
+        }
       }
     }
 
-    const walletProvider = window.ethereum as Eip1193Provider & {
-      on?: (event: string, listener: (...args: unknown[]) => void) => void;
-      removeListener?: (event: string, listener: (...args: unknown[]) => void) => void;
-    };
-
     void detectConnectedWallet();
-    walletProvider.on?.("accountsChanged", handleAccountsChanged);
-    walletProvider.on?.("chainChanged", handleChainChanged);
+    selectedWallet.on?.("accountsChanged", handleAccountsChanged);
+    selectedWallet.on?.("chainChanged", handleChainChanged);
 
     return () => {
       cancelled = true;
-      walletProvider.removeListener?.("accountsChanged", handleAccountsChanged);
-      walletProvider.removeListener?.("chainChanged", handleChainChanged);
+      selectedWallet.removeListener?.("accountsChanged", handleAccountsChanged);
+      selectedWallet.removeListener?.("chainChanged", handleChainChanged);
     };
-  }, []);
-
-  async function syncBotChainAfterConnect() {
-    setBusy(true);
-    try {
-      await ensureBotChain();
-      const currentChainId = (await window.ethereum?.request({ method: "eth_chainId" })) as string | undefined;
-      if (currentChainId) {
-        setChainId(BigInt(currentChainId));
-      }
-      setStatus("Wallet connected. Loading deployed BOT Pulse state...");
-      await refreshDevice();
-    } catch (error) {
-      const maybeError = error as { code?: number; message?: string };
-      setStatus(maybeError.message ?? "Wallet connected, but BOT Chain switch/state refresh failed.");
-    } finally {
-      setBusy(false);
-    }
-  }
+  }, [selectedWallet, selectedWalletName]);
 
   async function getContract(withSigner = false) {
     if (!withSigner) {
       const provider = new JsonRpcProvider(BOT_CHAIN_TESTNET.rpcUrl);
       return new Contract(BOT_PULSE_CONTRACT_ADDRESS, BOT_PULSE_ABI, provider);
     }
-    const provider = await getBrowserProvider();
+    const provider = await getBrowserProvider(selectedWallet);
     const signer = await provider.getSigner();
     return new Contract(BOT_PULSE_CONTRACT_ADDRESS, BOT_PULSE_ABI, signer);
   }
 
   async function connectWallet() {
     setBusy(true);
-    setStatus("Opening wallet connection request...");
+    setStatus(`Opening ${selectedWalletName} connection request...`);
     try {
-      if (!window.ethereum) {
-        throw new Error("No EVM wallet found. Open this page inside MetaMask/Rabby browser or install a wallet extension.");
+      if (!selectedWallet) {
+        throw new Error("No EVM wallet detected. Install MetaMask/Rabby or open this page in a wallet browser.");
       }
 
-      const accounts = (await window.ethereum.request({ method: "eth_requestAccounts" })) as string[];
+      const lockedChainId = await ensureBotChain(selectedWallet);
+      setChainId(lockedChainId);
+      const accounts = (await selectedWallet.request({ method: "eth_requestAccounts" })) as string[];
       const connectedAccount = accounts?.[0];
       if (!connectedAccount) {
-        throw new Error("Wallet did not return an account. Unlock the wallet and try again.");
+        throw new Error("Wallet did not return an account. Unlock the selected wallet and try again.");
       }
 
       setAccount(connectedAccount);
-      setStatus("Wallet connected. Checking BOT Chain network...");
-      setBusy(false);
-
-      // Do the slower network switch + contract read after the account state has rendered.
-      window.setTimeout(() => {
-        void syncBotChainAfterConnect();
-      }, 0);
+      setStatus(`${selectedWalletName} connected on BOT Chain Testnet. Loading deployed BOT Pulse state...`);
+      await refreshDevice();
     } catch (error) {
       const maybeError = error as { code?: number; message?: string };
       if (maybeError.code === 4001) {
-        setStatus("Wallet request rejected. Click Connect Wallet again when ready.");
+        setStatus("Wallet request rejected. Choose your wallet, then click Connect again when ready.");
       } else {
         setStatus(maybeError.message ?? "Wallet connection failed.");
       }
+    } finally {
       setBusy(false);
     }
   }
@@ -459,7 +534,8 @@ export default function BotPulseDapp() {
 
     setBusy(true);
     try {
-      await ensureBotChain();
+      const lockedChainId = await ensureBotChain(selectedWallet);
+      setChainId(lockedChainId);
       const contract = await getContract(true);
       setStatus("Submitting device registration transaction...");
       const tx = await contract.registerDevice(deviceId, metadataURI);
@@ -495,7 +571,8 @@ export default function BotPulseDapp() {
 
     setBusy(true);
     try {
-      await ensureBotChain();
+      const lockedChainId = await ensureBotChain(selectedWallet);
+      setChainId(lockedChainId);
       const numericValue = BigInt(metricValue || "0");
       const packet = JSON.stringify({
         deviceLabel,
@@ -543,13 +620,27 @@ export default function BotPulseDapp() {
             <a href="#evidence" className="transition hover:text-white">Evidence</a>
           </div>
 
-          <button
-            onClick={connectWallet}
-            disabled={busy}
-            className="rounded-full border border-[#8dffbe]/30 bg-[#8dffbe] px-4 py-2 text-sm font-black text-[#07110c] shadow-[0_0_30px_rgba(141,255,190,0.22)] transition hover:scale-[1.02] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {account ? shortAddress(account) : busy ? "Opening…" : "Connect"}
-          </button>
+          <div className="flex items-center gap-2">
+            {wallets.length > 1 ? (
+              <select
+                aria-label="Select wallet"
+                value={selectedWalletId}
+                onChange={(event) => setSelectedWalletId(event.target.value)}
+                className="hidden rounded-full border border-white/10 bg-black/25 px-3 py-2 text-sm font-bold text-white outline-none focus:border-[#8dffbe] sm:block"
+              >
+                {wallets.map((wallet) => (
+                  <option key={wallet.id} value={wallet.id}>{wallet.name}</option>
+                ))}
+              </select>
+            ) : null}
+            <button
+              onClick={connectWallet}
+              disabled={busy || !selectedWallet}
+              className="rounded-full border border-[#8dffbe]/30 bg-[#8dffbe] px-4 py-2 text-sm font-black text-[#07110c] shadow-[0_0_30px_rgba(141,255,190,0.22)] transition hover:scale-[1.02] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {account ? shortAddress(account) : busy ? "Opening…" : selectedWallet ? `Connect ${selectedWalletName}` : "No wallet"}
+            </button>
+          </div>
         </nav>
 
         <section id="top" className="mx-auto grid max-w-7xl gap-8 px-5 pb-10 pt-14 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:pb-16 lg:pt-20">
@@ -701,6 +792,20 @@ export default function BotPulseDapp() {
 
             <div className="grid gap-4">
               <label className="grid gap-2 text-sm font-bold text-[#adc7b5]">
+                Preferred wallet
+                <select
+                  value={selectedWalletId}
+                  onChange={(event) => setSelectedWalletId(event.target.value)}
+                  disabled={!wallets.length || busy}
+                  className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {wallets.length ? wallets.map((wallet) => (
+                    <option key={wallet.id} value={wallet.id}>{wallet.name}</option>
+                  )) : <option value="">No injected wallet detected</option>}
+                </select>
+                <span className="text-xs font-semibold text-[#8ea497]">Transactions are forced onto BOT Chain Testnet ({BOT_CHAIN_TESTNET.chainIdHex}) before the account request opens.</span>
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-[#adc7b5]">
                 Device label
                 <input value={deviceLabel} onChange={(event) => { setDeviceLabel(event.target.value); setDevice(null); }} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-[#8dffbe]" />
               </label>
@@ -726,8 +831,8 @@ export default function BotPulseDapp() {
               </div>
               {!account ? (
                 <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                  <button onClick={connectWallet} disabled={busy} className="rounded-2xl bg-[#8dffbe] px-5 py-3 font-black text-[#07110c] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50">
-                    Connect wallet to register or send heartbeat
+                  <button onClick={connectWallet} disabled={busy || !selectedWallet} className="rounded-2xl bg-[#8dffbe] px-5 py-3 font-black text-[#07110c] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50">
+                    {selectedWallet ? `Connect ${selectedWalletName} on BOT Chain` : "Install an EVM wallet"}
                   </button>
                   <button onClick={refreshDevice} disabled={busy} className="rounded-2xl border border-white/12 bg-white/[0.06] px-5 py-3 font-black text-white transition hover:border-[#8dffbe]/45 disabled:cursor-not-allowed disabled:opacity-50">
                     Refresh state
